@@ -3,4 +3,9 @@
 ## Checklist
 
 ### Lexical Analyzer
-- [ ] Test
+- [ ] Open file
+- [ ] Check file extension, reject file if not .pfl
+
+...
+
+- [ ] Output: symtable

@@ -3,7 +3,7 @@
 ## Checklist
 
 ### Lexical Analyzer
-- [ ] Open filE
+- [ ] Open file
 - [ ] Check file extension, reject file if not .pfl
 - [ ] Identifier Checking
 - [ ] Keyword Checking
@@ -17,15 +17,15 @@
     - [ ] BY
     - [ ] DO
     - [ ] WHILE
-  - I/O Keywords
+  - [ ] I/O Keywords
     - [ ] INPUT
     - [ ] OUTPUT
-  - Data Type Keywords
+  - [ ] Data Type Keywords
     - [ ] INTEGER
     - [ ] DECIMAL
     - [ ] STRING
     - [ ] BOOLEAN
-  - Declaration/Assignment Keywords
+  - [ ] Declaration/Assignment Keywords
     - [ ] SET
     - [ ] AS
 - [ ] Reserved Words
@@ -40,8 +40,17 @@
     - [ ] /
     - [ ] %
     - [ ] ^
-    - [ ] ADD MORE PLEASE
-- [ ] Symbol Table
+    - [ ] ONE MORE OPERATOR PLEASE
+  - [ ] Boolean Operators
+    - [ ] <
+    - [ ] >
+    - [ ] <=
+    - [ ] >=
+    - [ ] =
+    - [ ] =!=
+- [ ]  Delimiters and Brackets
+- [ ] Error Checking
+- [ ] Output: text file containing the symbol table
 
 ...
 

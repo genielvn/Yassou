@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import lexer
 
 if __name__ == "__main__":
     cmd_parser = argparse.ArgumentParser(
@@ -22,4 +23,12 @@ if __name__ == "__main__":
                             format='%(levelname)s: %(message)s')
         logging.info('Debugging is enabled.')
 
-    # lexer(cmd_args.filename)
+
+    file = cmd_args.filename
+    result, error = lexer.run(file)
+    if error: 
+        print(error.description())
+    else:
+        print(result)
+
+    

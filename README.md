@@ -3,8 +3,8 @@
 ## Checklist
 
 ### Lexical Analyzer
-- [ ] Open file
-- [ ] Check file extension, reject file if not .pfl
+- [X] Open file
+- [X] Check file extension, reject file if not .pfl
 - [ ] Identifier Checking
 - [ ] Keyword Checking
   - [ ] Conditional Keywords

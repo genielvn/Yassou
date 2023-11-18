@@ -9,3 +9,11 @@
 ...
 
 - [ ] Output: symtable
+
+### Syntactic Analyzer
+
+...
+
+### Semantic Analyzer
+
+...

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     file = cmd_args.filename
     result, error = lexer.run(file)
     if error: 
-        print(error.description())
+        logging.error(error.description())
     else:
         print(result)
 

@@ -1,4 +1,5 @@
-from tokens import Tokens
+#!/usr/bin/python3
+
 from tokens import *
 from error import InvalidCharacter, InvalidFileType
 

@@ -2,7 +2,9 @@
 
 import argparse
 import logging
-import lexer
+from lexer import Lexer
+
+from error import InvalidFileTypeError
 
 if __name__ == "__main__":
     cmd_parser = argparse.ArgumentParser(
@@ -21,14 +23,21 @@ if __name__ == "__main__":
     if cmd_args.debug:
         logging.basicConfig(level=logging.DEBUG,
                             format='%(levelname)s: %(message)s')
-        logging.info('Debugging is enabled.')
+        logging.debug('Debugging is enabled.')
+    
+    try:
+        file = cmd_args.filename
+        
+        # Detect file type
+        if not file.name.endswith('.ppf'):
+            raise InvalidFileTypeError(file.name)
 
+    except InvalidFileTypeError as error:
+        error.invoke(__file__)
 
-    file = cmd_args.filename
-    result, error = lexer.run(file)
-    if error: 
-        logging.error(error.description())
-    else:
-        print(result)
+    lexer = Lexer(cmd_args.debug)
+    # symtable is the list of tokens
+    symtable = lexer.getSymTable(file)
+    #print(result)
 
     

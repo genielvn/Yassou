@@ -1,24 +1,26 @@
 #!/usr/bin/python3
 
-class Error:
-    def __init__(self, pos_start, pos_end, error_name, details):
-        self.pos_start = pos_start
-        self.pos_end = pos_end
-        self.error_name = error_name
-        self.details = details
-    
-    def description(self):
-        result  = f'{self.error_name}: {self.details}\n'
-        if self.pos_start == None or self.pos_end == None:
-            return result
-        
-        result += f'File {self.pos_start.fn}, line {self.pos_start.line_number + 1}'
-        return result
+import logging
+import sys
+import os
 
-class InvalidCharacter(Error):
-    def __init__(self, pos_start, pos_end, details):
-        super().__init__(pos_start, pos_end, 'Invalid Character', details)
+class Error(Exception):
+    def __init__(self):
+        self.error_name = ''
+        self.details    = ''
 
-class InvalidFileType(Error):
-    def __init__(self, pos_start, pos_end, details):
-        super().__init__(pos_start, pos_end, 'Invalid File Type', details)
+    def invoke(self, component_file):
+        logging.error(f'{os.path.basename(component_file)}: {self.details} [{self.error_name}]')
+        sys.exit(1)
+
+class InvalidFileTypeError(Error):
+    def __init__(self, file):
+        super().__init__()
+        self.error_name = 'InvalidFileType'
+        self.details    = f'File \"{file}\" is an invalid PPF file.'
+
+class InvalidCharacterError(Error):
+    def __init__(self, line_num, char_num, char):
+        super().__init__()
+        self.error_name = 'InvalidCharacter'
+        self.details    = f'Invalid character detected at line {line_num+1}, character {char_num+1}: \"{char}\"'

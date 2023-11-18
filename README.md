@@ -47,14 +47,10 @@
     - [ ] <=
     - [ ] >=
     - [ ] =
-    - [ ] =!=
+    - [ ] =/=
 - [ ]  Delimiters and Brackets
 - [ ] Error Checking
 - [ ] Output: text file containing the symbol table
-
-...
-
-- [ ] Output: symtable
 
 ### Syntactic Analyzer
 

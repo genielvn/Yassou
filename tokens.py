@@ -5,7 +5,7 @@ from decimal import Decimal
 # accepted input characters
 UPPERCASE_LETTERS       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 LOWERCASE_LETTERS       = UPPERCASE_LETTERS.lower()
-IDENTIFIER_CHARACTERS   = UPPERCASE_LETTERS + LOWERCASE_LETTERS + '_'
+KEYWORD_CHARACTERS      = UPPERCASE_LETTERS + LOWERCASE_LETTERS + '_'
 SYMBOLS                 = './*+-~!|&=\\%^<>'
 DELIMITERS              = ',()'
 WHITESPACE              = ' \t'
@@ -40,7 +40,7 @@ DELIMITER_DICT = {
         }
 
 # keywords/reserved words
-RESERVED_WORDS = ['FOR', 'TO', 'BY', 'DO', 'WHILE',
+KEYWORDS       = ['FOR', 'TO', 'BY', 'DO', 'WHILE',
                   'IF', 'ELSE', 'THEN', 'INPUT', 'OUTPUT',
                   'INTEGER', 'STRING', 'DECIMAL', 'BOOLEAN',
                   'TRUE', 'FALSE', 'SET', 'AS']
@@ -60,6 +60,9 @@ class Token():
 
     def getType(self):
         return self.type
+
+    def getLocation(self):
+        return self.location
 
     def concatValue(self, char):
         self.value = self.value + char
@@ -84,9 +87,9 @@ class IdentifierToken(Token):
         super().__init__('IDENTIFIER', value, line_num, char_num)
 
 # In PPF, keywords are also reserved words.
-class ReservedWordToken(Token):
+class KeywordToken(Token):
     def __init__(self, value, line_num, char_num):
-        super().__init__('RESERVED', value, line_num, char_num)
+        super().__init__('KEYWORD', value, line_num, char_num)
 
 class BooleanToken(Token):
     def __init__(self, value, line_num, char_num):

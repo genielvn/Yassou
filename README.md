@@ -5,6 +5,7 @@
 ### Lexical Analyzer
 - [X] Open file
 - [X] Check file extension, reject file if not .pfl
+- [X] Integer and Decimal Checking
 - [ ] Identifier Checking
 - [ ] Keyword Checking
   - [ ] Conditional Keywords
@@ -29,7 +30,7 @@
     - [ ] SET
     - [ ] AS
 - [ ] Reserved Words
-  - Boolean Values
+  - [ ] Boolean Values
     - [ ] TRUE
     - [ ] FALSE
 - [ ] Operators
@@ -48,7 +49,7 @@
     - [ ] >=
     - [ ] =
     - [ ] =/=
-- [ ]  Delimiters and Brackets
+- [ ] Delimiters and Brackets
 - [ ] Error Checking
 - [ ] Output: text file containing the symbol table
 

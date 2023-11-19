@@ -13,6 +13,8 @@ python3 main.py [FILE]
 - [X] Open file
 - [X] Check file extension, reject file if not .pfl
 - [X] Integer and Decimal Checking
+- [ ] String Checking
+- [ ] Comment Checking
 - [X] Identifier Checking
 - [ ] Keyword Checking
   - [ ] Conditional Keywords

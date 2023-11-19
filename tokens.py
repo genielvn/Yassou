@@ -28,7 +28,8 @@ SYM_DICT = {
         '>'  : 'GREATER_THAN',
         '<=' : 'LT_EQUAL',
         '>=' : 'GT_EQUAL',
-        '=/=': 'NOT_EQUAL'
+        '=/=': 'NOT_EQUAL',
+        '.'  : 'DOT'
         }
 
 DELIMITER_DICT = {
@@ -73,7 +74,7 @@ class IntegerToken(Token):
 # Decimal is 28 significant figures by default.
 class DecimalToken(Token):
     def __init__(self, value, line_num, char_num):
-        super().__init__('DECIMAL', Decimal(value), line_num, char_num)
+        super().__init__('DECIMAL', value, line_num, char_num)
 
     def getValue(self):
         return Decimal(self.value)

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import decimal
+from decimal import Decimal
 
 # accepted input characters
 UPPERCASE_LETTERS       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -23,7 +23,7 @@ SYM_DICT = {
         '||' : 'OR',
         '&&' : 'AND',
         '='  : 'ASSIGNMENT',
-        '==' : 'EQUALS'
+        '==' : 'EQUALS',
         '<'  : 'LESS_THAN',
         '>'  : 'GREATER_THAN',
         '<=' : 'LT_EQUAL',
@@ -68,7 +68,7 @@ class IntegerToken(Token):
         super().__init__('INTEGER', value, line_num, char_num)
     
     def getValue(self):
-        return int(value)
+        return int(self.value)
 
 # Decimal is 28 significant figures by default.
 class DecimalToken(Token):
@@ -76,7 +76,7 @@ class DecimalToken(Token):
         super().__init__('DECIMAL', Decimal(value), line_num, char_num)
 
     def getValue(self):
-        return Decimal(value)
+        return Decimal(self.value)
 
 class IdentifierToken(Token):
     def __init__(self, value, line_num, char_num):
@@ -107,7 +107,7 @@ class TabToken(Token):
         super().__init__('TAB', value, line_num, char_num)
 
     def getValue(self):
-        return len(value)
+        return len(self.value)
 
 # Refer to DELIMITER_DICT for DelimiterToken values
 class DelimiterToken(Token):

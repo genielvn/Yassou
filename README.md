@@ -1,4 +1,11 @@
 # PseudoFile Language
+PseudoFile Language (PFL) is a general-purpose programming language named after the terms "pseudocode" and "compile", which means to compile pseudocode.
+
+## Developing
+To run a (.ppf) file:
+```
+python3 main.py [FILE]
+```
 
 ## Checklist
 

@@ -34,11 +34,11 @@ if __name__ == "__main__":
 
         lexer = Lexer(cmd_args.debug)
         symtable = lexer.getSymTable(file)
+        lexer.printSymTable()
 
     except Error as error:
         error.invoke(__file__)
 
     # symtable is the list of tokens
-    #print(result)
 
     

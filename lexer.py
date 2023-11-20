@@ -86,4 +86,4 @@ class Lexer():
         logging.debug("Printing Symbol Table")
 
         for token in self.symtable:
-            print("{:<25}{:}".format(token.type, token.value))
+            logging.info("{:<25}{:}".format(token.type, token.value))

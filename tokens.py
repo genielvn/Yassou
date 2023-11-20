@@ -5,11 +5,12 @@ from decimal import Decimal
 # accepted input characters
 UPPERCASE_LETTERS       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 LOWERCASE_LETTERS       = UPPERCASE_LETTERS.lower()
+DIGITS                  = '0123456789' 
 KEYWORD_CHARACTERS      = UPPERCASE_LETTERS + LOWERCASE_LETTERS + '_'
+IDENTIFIER_CHARACTERS   = KEYWORD_CHARACTERS + DIGITS
 SYMBOLS                 = './*+-~!|&=\\%^<>'
 DELIMITERS              = ',()'
 WHITESPACE              = ' \t'
-DIGITS                  = '0123456789'
 
 # tokens
 SYM_DICT = {
@@ -36,7 +37,8 @@ DELIMITER_DICT = {
         '\n' : 'SENTENCE',
         '('  : 'EXPR_BEGIN',
         ')'  : 'EXPR_TERMINATE',
-        '~'  : 'COMMENT'
+        '~'  : 'COMMENT',
+        '\"' : 'STR_QUOTE'
         }
 
 # keywords/reserved words

@@ -16,6 +16,8 @@ class Lexer():
 
     def addTokenToSymTable(self, token):
         for t in token:
+            if not t.type:
+                continue
             self.symtable.append(t)
 
     def createSymTable(self, file):
@@ -25,30 +27,28 @@ class Lexer():
 
             for char_num, char in enumerate(line):
                 if char == ' ':
-                    self.token_queue.append(Token("SPACE", None, line_num, char_num))
+                    self.token_queue.append(Token(None, None, line_num, char_num))
                 elif char == '\t':
                     self.token_queue.append(Token("INDENT", None, line_num, char_num))
                 elif char in DELIMITER_DICT:
                     self.token_queue.append(DelimiterToken(DELIMITER_DICT[char], line_num, char_num))
-                    continue
                 elif char in SYM_DICT:
                     if char == '.' and self.previousTokenType() == 'INTEGER':
                         token = self.token_queue[-1]
                         self.replacePreviousToken(DecimalToken(str(token.getValue()) + char, token.location['line_num'], token.location['char_num']))
                     else:
                         self.token_queue.append(Token(SYM_DICT[char], char, line_num, char_num))
-                    continue
                 elif char in DIGITS:
-                    if self.previousTokenType() == 'INTEGER' or self.previousTokenType() == 'DECIMAL':
+                    concat_tokens = ['INTEGER', 'DECIMAL', 'IDENTIFIER']
+                    if self.previousTokenType() in concat_tokens:
                         self.token_queue[-1].concatValue(char)
                     else:
                         self.token_queue.append(IntegerToken(char, line_num, char_num))
-                    continue
                 elif char in KEYWORD_CHARACTERS:
                     self.make_keyword(char, line_num, char_num)
                 else:
                     raise InvalidCharacterError(line_num, char_num, char)
-                
+                    
             self.addTokenToSymTable(self.token_queue)
 
     def previousTokenType(self):
@@ -83,5 +83,7 @@ class Lexer():
         return self.symtable
 
     def printSymTable(self):
+        logging.debug("Printing Symbol Table")
+
         for token in self.symtable:
             print("{:<25}{:}".format(token.type, token.value))

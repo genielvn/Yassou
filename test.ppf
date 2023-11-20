@@ -1,1 +1,3 @@
-+ - / *
+FOR variable1 = 10 TO 20 BY 1
+    IF variable1 % 2 == 0 THEN
+        OUTPUT variable1

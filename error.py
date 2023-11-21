@@ -34,3 +34,10 @@ class InvalidCharacterError(Error):
         super().__init__()
         self.error_name = 'InvalidCharacter'
         self.details    = f'Invalid character detected at line {line_num+1}, character {char_num+1}: \"{char}\"'
+
+class StringNotClosedError(Error):
+    def __init__(self, char, line_num, char_num):
+        super().__init__()
+        self.error_name = 'StringNotClosed'
+        self.details    = f'Expected \" at line {line_num+1}, character {char_num+1}.'
+

@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 from tokens import *
 from constants import *
-from error import InvalidCharacterError, CreateDebugFileError
+from error import Error, InvalidCharacterError, CreateDebugFileError, StringNotClosedError
 
 class Mode(Enum):
     NORMAL      = 1 # Allows concatenation
@@ -38,7 +38,7 @@ class Lexer():
             for char_num, char in enumerate(line):
                 try:
                     if self.mode is Mode.COMMENT: self.handleComment(char)
-                    elif self.mode is Mode.STRING: self.handleString(char)
+                    elif self.mode is Mode.STRING: self.handleString(char, line_num, char_num)
 
                     elif char in DELIMITERS:
                         self.handleDelimiter(char, line_num, char_num)
@@ -52,7 +52,7 @@ class Lexer():
                         self.handleLetter(char, line_num, char_num)
                     else: raise InvalidCharacterError(char, line_num, char_num)
 
-                except InvalidCharacterError as error:
+                except Error as error:
                     error.invoke(__file__)
 
             if len(self.tstack) != 1:   # contains <1 tokens (besides "\n")
@@ -65,27 +65,31 @@ class Lexer():
         if char == '~':
             self.mode = Mode.NOCONCAT
 
-    def handleString(self, char):
+    def handleString(self, char, line_num, char_num):
         self.tstack[-1].concatValue(char)
-        
+        if char == '\n' and self.mode == Mode.STRING:
+            raise StringNotClosedError(char, line_num, char_num)
         if char == '\"':
             self.mode = Mode.NOCONCAT    
 
     def handleWhitespace(self, char, line_num):
         if self.mode is Mode.INDENT:
-            try: self.tstack.append(IndentToken(line_num))
-            except: self.tstack[-1].addIndentLevel()
+            try: self.tstack[-1].addIndentLevel()
+            except: self.tstack.append(IndentToken(line_num))
             return
         # self.mode is Mode.NORMAL or Mode.NOCONCAT
         self.mode = Mode.NOCONCAT
 
     def handleDelimiter(self, char, line_num, char_num):
-        try:
-            self.tstack.append(
-                    DelimiterToken(SYM_DICT[char], char, line_num, char_num))
-        except KeyError:    # Using newline as a dictionary key is an exception
+        if char == '\n':
             self.tstack.append(
                     DelimiterToken('SENTENCE_BREAK', '\\n', line_num, char_num))
+        else:
+            self.tstack.append(
+                    DelimiterToken(DELIMITER_DICT[char], char, line_num, char_num))
+
+        # try:
+        # except KeyError:    # Using newline as a dictionary key is an exception
 
         self.mode = Mode.NOCONCAT
     

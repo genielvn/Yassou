@@ -73,16 +73,9 @@ class Lexer():
 
     def handleWhitespace(self, char, line_num):
         if self.mode is Mode.INDENT:
-            try:
-                if not self.tstack:
-                    raise IndexError
-                self.tstack[-1].addIndentLevel()
-
-            except IndexError:
-                self.tstack.append(IndentToken(line_num))
-            
+            try: self.tstack.append(IndentToken(line_num))
+            except: self.tstack[-1].addIndentLevel()
             return
-
         # self.mode is Mode.NORMAL or Mode.NOCONCAT
         self.mode = Mode.NOCONCAT
 

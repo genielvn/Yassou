@@ -1,89 +1,192 @@
 #!/usr/bin/python3
 
-from tokens import *
-from error import InvalidCharacterError
+from enum import Enum
 import logging
+from tokens import *
+from constants import *
+from error import InvalidCharacterError, CreateDebugFileError
+
+class Mode(Enum):
+    NORMAL      = 1 # Allows concatenation
+    INDENT      = 2 # Lexer handles indention level in indent mode
+    STRING      = 3 # Lexer concatenates all characters until ", priority
+    COMMENT     = 4 # Lexer skips character except ~ in comment mode, priority
+    NOCONCAT    = 5 # Lexer forces no concatenation
 
 class Lexer():
-    def __init__(self, debugging):
-        self.symtable = []
-        self.token_queue = []
+    def __init__(self, debugging, file):
+        self.debugging  = debugging
+        self.file       = file
+        self.tstack     = []                # temporary stack to store token values
+        self.mode       = Mode.INDENT       # a PPF line starts with indention.
         
-        if debugging:
-            logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
+        if self.debugging:
+            logging.basicConfig(level=logging.DEBUG,
+                                format='%(levelname)s: %(message)s')
+        else:
+            logging.basicConfig(format='%(levelname)s: %(message)s')
         
         logging.debug('Lexer object instantiated.')
+        
+        self.symtable   = []
+        self.createSymTable()
 
-    def addTokenToSymTable(self, token):
-        for t in token:
-            if not t.type:
-                continue
-            self.symtable.append(t)
-
-    def createSymTable(self, file):
-        for line_num, line in enumerate(file):
-            # temporary queue to store token values
-            self.token_queue = []
+    def createSymTable(self):
+        for line_num, line in enumerate(self.file):
+            self.mode = Mode.INDENT
 
             for char_num, char in enumerate(line):
-                if char == ' ':
-                    self.token_queue.append(Token(None, None, line_num, char_num))
-                elif char == '\t':
-                    self.token_queue.append(Token("INDENT", None, line_num, char_num))
-                elif char in DELIMITER_DICT:
-                    self.token_queue.append(DelimiterToken(DELIMITER_DICT[char], line_num, char_num))
-                elif char in SYM_DICT:
-                    if char == '.' and self.previousTokenType() == 'INTEGER':
-                        token = self.token_queue[-1]
-                        self.replacePreviousToken(DecimalToken(str(token.getValue()) + char, token.location['line_num'], token.location['char_num']))
-                    else:
-                        self.token_queue.append(Token(SYM_DICT[char], char, line_num, char_num))
-                elif char in DIGITS:
-                    concat_tokens = ['INTEGER', 'DECIMAL', 'IDENTIFIER']
-                    if self.previousTokenType() in concat_tokens:
-                        self.token_queue[-1].concatValue(char)
-                    else:
-                        self.token_queue.append(IntegerToken(char, line_num, char_num))
-                elif char in KEYWORD_CHARACTERS:
-                    self.make_keyword(char, line_num, char_num)
-                else:
-                    raise InvalidCharacterError(line_num, char_num, char)
-                    
-            self.addTokenToSymTable(self.token_queue)
+                try:
+                    if self.mode is Mode.COMMENT: self.handleComment(char)
+                    elif self.mode is Mode.STRING: self.handleString(char)
 
-    def previousTokenType(self):
-        if not self.token_queue: 
-            return None
-        return self.token_queue[-1].getType()
+                    elif char in DELIMITERS:
+                        self.handleDelimiter(char, line_num, char_num)
+                    elif char.isspace():
+                        self.handleWhitespace(char, line_num)
+                    elif char in SYMBOLS:
+                        self.handleSymbol(char, line_num, char_num)
+                    elif char in DIGITS:
+                        self.handleDigit(char, line_num, char_num)
+                    elif char in LETTERS:
+                        self.handleLetter(char, line_num, char_num)
+                    else: raise InvalidCharacterError(char, line_num, char_num)
+
+                except InvalidCharacterError as error:
+                    error.invoke(__file__)
+
+            if len(self.tstack) != 1:   # contains <1 tokens (besides "\n")
+                self.symtable.extend(self.tstack)
+            self.tstack = []
+        
+        if self.debugging: self.createDebugFile()
+        
+    def handleComment(self, char):
+        if char == '~':
+            self.mode = Mode.NOCONCAT
+
+    def handleString(self, char):
+        self.tstack[-1].concatValue(char)
+        
+        if char == '\"':
+            self.mode = Mode.NOCONCAT    
+
+    def handleWhitespace(self, char, line_num):
+        if self.mode is Mode.INDENT:
+            try:
+                if not self.tstack:
+                    raise IndexError
+                self.tstack[-1].addIndentLevel()
+
+            except IndexError:
+                self.tstack.append(IndentToken(line_num))
+            
+            return
+
+        # self.mode is Mode.NORMAL or Mode.NOCONCAT
+        self.mode = Mode.NOCONCAT
+
+    def handleDelimiter(self, char, line_num, char_num):
+        try:
+            self.tstack.append(
+                    DelimiterToken(SYM_DICT[char], char, line_num, char_num))
+        except KeyError:    # Using newline as a dictionary key is an exception
+            self.tstack.append(
+                    DelimiterToken('SENTENCE_BREAK', '\\n', line_num, char_num))
+
+        self.mode = Mode.NOCONCAT
     
-    def replacePreviousToken(self, new_token: Token):
-        self.token_queue.pop()
-        self.token_queue.append(new_token)
+    def handleSymbol(self, char, line_num, char_num):
+        try:
+            if char == '~':
+                self.mode = Mode.COMMENT
+                return
 
-    def make_keyword(self, char, line_num, char_num):
-        if self.previousTokenType() == 'IDENTIFIER':
-            current_name = self.token_queue[-1].getValue() + char
-            if current_name in KEYWORDS:
-                token = self.token_queue[-1]
-                self.replacePreviousToken(KeywordToken(current_name, token.location['line_num'], token.location['char_num']))
+            if char == '\"':
+                self.tstack.append(StringToken(line_num, char_num))
+                self.mode = Mode.STRING
+                return
+            
+            # integer + dot = integer-only decimal
+            if self.tstack[-1].getType() == 'INTEGER' and char == '.':
+                self.tstack[-1].concatValue(char)
+            
+            # for double-character symbols
+            elif self.tstack[-1].getType() in ['NOT', 'ASSIGNMENT',
+                            'LESS_THAN', 'GREATER_THAN'] and char == '=':
+               self.tstack[-1].concatValue()
+
+
+            # last stack element is word, delimiter, decimal, string, indent
+            # or even single-character symbol
             else:
-                self.token_queue[-1].concatValue(char)
-        elif self.previousTokenType() == 'KEYWORD':
-            current_name = self.token_queue[-1].getValue() + char
-            token = self.token_queue[-1]
-            self.replacePreviousToken(IdentifierToken(current_name, token.location['line_num'], token.location['char_num']))
-        else:
-            self.token_queue.append(IdentifierToken(char, line_num, char_num))
-    
-    def getSymTable(self, file):
-        if not self.symtable:
-            # symtable is empty
-            self.createSymTable(file)
+                self.tstack.append(SymbolToken(
+                    SYM_DICT[char], char, line_num, char_num))
 
+        # self.tstack is empty
+        except IndexError:
+            self.tstack.append(SymbolToken(
+                SYM_DICT[char], char, line_num, char_num))
+        
+        self.mode = Mode.NORMAL
+
+    # Note: negative numbers handled in syntax analyzer
+    def handleDigit(self, char, line_num, char_num):
+        if self.mode in [Mode.NOCONCAT, Mode.INDENT]:
+            self.tstack.append(NumberToken('INTEGER', char, line_num, char_num))
+            self.mode = Mode.NORMAL
+            return
+
+        # self.mode is Mode.NORMAL
+        if self.tstack[-1].getType() in ['INTEGER', 'DECIMAL',
+                                         'RESERVED_WORD', 'IDENTIFIER']:
+            self.tstack[-1].concatValue(char)
+
+        elif self.tstack[-1].getType() == 'PERIOD':
+            self.tstack.pop()
+            self.tstack.append(
+                    NumberToken('DECIMAL', f'.{char}', line_num, char_num))
+        else:
+            self.tstack.append(NumberToken('INTEGER', char, line_num, char_num))
+
+    def handleLetter(self, char, line_num, char_num):
+        if self.mode in [Mode.NOCONCAT, Mode.INDENT]:
+            self.tstack.append(WordToken(char, line_num, char_num))
+            # allow concatenation for words with >1 character names
+            self.mode = Mode.NORMAL
+            return
+
+        # self.mode is Mode.NORMAL
+        if self.tstack[-1].getType() in ['RESERVED_WORD', 'IDENTIFIER']:
+            self.tstack[-1].concatValue(char)
+
+        # scientific notation handled in syntax analyzer
+        elif self.tstack[-1].getType() in ['INTEGER', 'DECIMAL'] and char == 'e':
+            self.tstack.append(SymbolToken('EXPONENT', 'e', line_num, char_num))
+            self.mode = Mode.NOCONCAT
+            return
+        
+        # last stack element is a number, symbol, delimiter or string
+        else:
+            self.tstack.append(WordToken(char, line_num, char_num))
+        self.mode = Mode.NORMAL
+        
+    def getSymTable(self):
         return self.symtable
 
-    def printSymTable(self):
-        logging.debug("Printing Symbol Table")
+    def createDebugFile(self):
+        try:
+            debug_file = open('.lexer_debug.txt', 'wt')
 
-        for token in self.symtable:
-            logging.info("{:<25}{:}".format(token.type, token.value))
+            logging.debug(f"Symbol table of {self.file.name}:")
+            for token in self.symtable:
+                string = f"Line {token.location['line_num']}, Char {token.location['char_num']:3}:\t{token.type:15}\t{token.value}"
+
+                print(" " + string)
+                debug_file.write(string + '\n')
+        except CreateDebugFileError as error:
+            error.invoke(__file__)
+        
+        else:
+            debug_file.close()
+

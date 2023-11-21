@@ -1,3 +1,36 @@
 FOR variable1 = 10 TO 20 BY 1
     IF variable1 % 2 == 0 THEN
         OUTPUT variable1
+"Hello ~Comment?~ World"
+~Comment?~
+1.2.1
+
+~
+~ This is a multiline comment.
+~
+
+SET x_1 AS INTEGER
+SET x_2 AS DECIMAL
+SET _   AS BOOLEAN
+SET str AS STRING
+
+INPUT x_1
+
+SET x_2 AS 72.7
+
+IF x_1 < 35
+	SET x_1 = x_1 + 1
+
+IF _ == TRUE THEN
+	SET _ = FALSE
+ELSE IF _ == FALSE THEN
+	SET _ = TRUE
+
+1 + ~MIDDLE COMMENT~ 2
+
+~ Exponent ~
+1e2 == 100
+
+~ Negative ~
+-10
+

@@ -3,42 +3,54 @@
 import argparse
 import logging
 from lexer import Lexer
+from error import InvalidFileTypeError
 
-from error import Error, InvalidFileTypeError
+class Interpreter():
+    def __init__(self):
+        self.arguments  = self.getAttributes()
+        self.debugging  = self.debug()
+        self.input_file = self.getFile()
+        self.lexer      = Lexer(self.debugging, self.input_file)
+        self.symtable   = self.lexer.getSymTable()
 
-if __name__ == "__main__":
-    cmd_parser = argparse.ArgumentParser(
-            description="PseudoFile language interpreter.")
-    
-    cmd_parser.add_argument('filename', metavar="FILE",
-                            type=argparse.FileType('r', encoding='UTF-8'),
+    def getAttributes(self):
+        parser = argparse.ArgumentParser(
+                description='PseudoFile language interpreter.')
+
+        parser.add_argument('filename',
+                            metavar='FILE',
+                            type=argparse.FileType('r',encoding='UTF-8'),
                             help='.ppf file to process')
-    cmd_parser.add_argument('-d', '--debug',
+
+        parser.add_argument('-d', '--debug',
                             action='store_true',
                             help='enable debugging')
 
-    cmd_args = cmd_parser.parse_args()
+        return parser.parse_args()
 
-    # Enable debug mode
-    if cmd_args.debug:
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(levelname)s: %(message)s')
-        logging.debug('Debugging is enabled.')
-    
-    try:
-        file = cmd_args.filename
-        
-        # Detect file type
-        if not file.name.endswith('.ppf'):
-            raise InvalidFileTypeError(file.name)
+    def debug(self):
+        if self.arguments.debug:
+            logging.basicConfig(level=logging.DEBUG,
+                                format='%(levelname)s: %(message)s')
+            logging.debug('Debugging is enabled.')
+        else:
+            logging.basicConfig(format='%(levelname)s: %(message)s')
+        return self.arguments.debug
 
-        lexer = Lexer(cmd_args.debug)
-        symtable = lexer.getSymTable(file)
-        lexer.printSymTable()
+    def getFile(self):
+        try:
+            file = self.arguments.filename
 
-    except Error as error:
-        error.invoke(__file__)
+            # file detection
+            if not file.name.endswith('.ppf'):
+                raise InvalidFileTypeError(file.name)
 
-    # symtable is the list of tokens
+        except InvalidFileTypeError as error:
+            error.invoke(__file__)
 
-    
+        else:
+            return file
+
+if __name__ == "__main__":
+    interpreter = Interpreter()
+

@@ -6,8 +6,8 @@ import os
 
 class Error(Exception):
     def __init__(self):
-        self.error_name = ''
-        self.details    = ''
+        self.error_name = None
+        self.details    = None
 
     def invoke(self, component_file):
         logging.error(f'{os.path.basename(component_file)}: {self.details} [{self.error_name}]')
@@ -19,8 +19,18 @@ class InvalidFileTypeError(Error):
         self.error_name = 'InvalidFileType'
         self.details    = f'File \"{file}\" is an invalid PPF file.'
 
+class CreateDebugFileError(Error):
+    def __init_(self, file):
+        super().__init__()
+        self.error_name = 'CreateDebugFile'
+        self.details    = f'Cannot create debug file.'
+
+    # only warns user of OSError.
+    def invoke(self, component_file):
+        logging.warning(f'{os.path.basename(component_file)}: {self.details} [{self.error_name}]')
+
 class InvalidCharacterError(Error):
-    def __init__(self, line_num, char_num, char):
+    def __init__(self, char, line_num, char_num):
         super().__init__()
         self.error_name = 'InvalidCharacter'
         self.details    = f'Invalid character detected at line {line_num+1}, character {char_num+1}: \"{char}\"'

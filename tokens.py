@@ -1,49 +1,7 @@
 #!/usr/bin/python3
 
 from decimal import Decimal
-
-# accepted input characters
-UPPERCASE_LETTERS       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-LOWERCASE_LETTERS       = UPPERCASE_LETTERS.lower()
-IDENTIFIER_CHARACTERS   = UPPERCASE_LETTERS + LOWERCASE_LETTERS + '_'
-SYMBOLS                 = './*+-~!|&=\\%^<>'
-DELIMITERS              = ',()'
-WHITESPACE              = ' \t'
-DIGITS                  = '0123456789'
-
-# tokens
-SYM_DICT = {
-        '+'  : 'PLUS',
-        '-'  : 'MINUS',
-        '*'  : 'MULTIPLY',
-        '/'  : 'DIVIDE',
-        '%'  : 'MODULO',
-        '^'  : 'RAISE',
-        '!!' : 'NOT',
-        '||' : 'OR',
-        '&&' : 'AND',
-        '='  : 'ASSIGNMENT',
-        '==' : 'EQUALS',
-        '<'  : 'LESS_THAN',
-        '>'  : 'GREATER_THAN',
-        '<=' : 'LT_EQUAL',
-        '>=' : 'GT_EQUAL',
-        '=/=': 'NOT_EQUAL',
-        '.'  : 'DOT'
-        }
-
-DELIMITER_DICT = {
-        '\n' : 'SENTENCE',
-        '('  : 'EXPR_BEGIN',
-        ')'  : 'EXPR_TERMINATE',
-        '~'  : 'COMMENT'
-        }
-
-# keywords/reserved words
-RESERVED_WORDS = ['FOR', 'TO', 'BY', 'DO', 'WHILE',
-                  'IF', 'ELSE', 'THEN', 'INPUT', 'OUTPUT',
-                  'INTEGER', 'STRING', 'DECIMAL', 'BOOLEAN',
-                  'TRUE', 'FALSE', 'SET', 'AS']
+from constants import *
 
 class Token():
     def __init__(self, token_type, value, line_num, char_num):
@@ -61,56 +19,69 @@ class Token():
     def getType(self):
         return self.type
 
+    def getLocation(self):
+        return self.location
+
+    # concatenate if value is character, addition if integer
+    def concatValue(self, value):
+        self.value = self.value + value
+
+# NumberToken includes integer and decimal (28 sig figs)
+class NumberToken(Token):
+    def __init__(self, token_type, value, line_num, char_num):
+        super().__init__(token_type, value, line_num, char_num)
+    
+    def getValue(self):
+        if self.type == 'INTEGER':
+            return int(self.value)
+
+        return Decimal(self.value)
+
     def concatValue(self, char):
         self.value = self.value + char
 
-class IntegerToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('INTEGER', value, line_num, char_num)
-    
-    def getValue(self):
-        return int(self.value)
+        if char == '.':
+            self.type = 'DECIMAL'
 
-# Decimal is 28 significant figures by default.
-class DecimalToken(Token):
+# WordToken includes reserved words and identifier words
+class WordToken(Token):
     def __init__(self, value, line_num, char_num):
-        super().__init__('DECIMAL', value, line_num, char_num)
-
-    def getValue(self):
-        return Decimal(self.value)
-
-class IdentifierToken(Token):
-    def __init__(self, value, line_num, char_num):
+        # WordToken starts as an identifier since there's no
+        # reserved word that is one character long.
         super().__init__('IDENTIFIER', value, line_num, char_num)
 
-# In PPF, keywords are also reserved words.
-class ReservedWordToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('RESERVED', value, line_num, char_num)
+    def concatValue(self, char):
+        self.value += char
 
-class BooleanToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('BOOLEAN', value, line_num, char_num)
+        if self.value in RESERVED_WORDS:
+            self.type = 'RESERVED_WORD'
+        else:
+            self.type = 'IDENTIFIER'
 
 # String literals include ""
 class StringToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('STRING', value, line_num, char_num)
+    def __init__(self, line_num, char_num):
+        super().__init__('STRING', '\"', line_num, char_num)
 
-# Refer to SYM_DICT for SymbolToken values
+# Refer to SYM_DICT for SymbolToken token_type and value
 class SymbolToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('SYMBOL', value, line_num, char_num)
+    def __init__(self, token_type, value, line_num, char_num):
+        super().__init__(token_type, value, line_num, char_num)
+
+    # concat must only be equal
+    def concatValue(self):
+        self.value += '='
+        self.type = SYM_DICT[self.value]
 
 # length of whitespace == tab level
-class TabToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('TAB', value, line_num, char_num)
+class IndentToken(Token):
+    def __init__(self, line_num):
+        super().__init__('INDENT', 1, line_num, 0)
 
-    def getValue(self):
-        return len(self.value)
+    def addIndentLevel(self):
+        self.value += 1
 
-# Refer to DELIMITER_DICT for DelimiterToken values
+# Refer to DELIMITER_DICT for DelimiterToken token_type and value
 class DelimiterToken(Token):
-    def __init__(self, value, line_num, char_num):
-        super().__init__('DELIMITER', value, line_num, char_num)
+    def __init__(self, token_type, value, line_num, char_num):
+        super().__init__(token_type, value, line_num, char_num)

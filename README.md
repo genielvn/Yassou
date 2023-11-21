@@ -1,4 +1,11 @@
 # PseudoFile Language
+PseudoFile Language (PFL) is a general-purpose programming language named after the terms "pseudocode" and "compile", which means to compile pseudocode.
+
+## Developing
+To run a (.ppf) file:
+```
+python3 main.py [FILE]
+```
 
 ## Checklist
 
@@ -6,7 +13,9 @@
 - [X] Open file
 - [X] Check file extension, reject file if not .pfl
 - [X] Integer and Decimal Checking
-- [ ] Identifier Checking
+- [ ] String Checking
+- [ ] Comment Checking
+- [X] Identifier Checking
 - [ ] Keyword Checking
   - [ ] Conditional Keywords
     - [ ] IF
@@ -49,6 +58,10 @@
     - [ ] >=
     - [ ] =
     - [ ] =/=
+  - [ ] Logical Operators
+   - [ ] !!
+   - [ ] &&
+   - [ ] ||
 - [ ] Delimiters and Brackets
 - [ ] Error Checking
 - [ ] Output: text file containing the symbol table

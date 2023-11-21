@@ -97,37 +97,31 @@ class Lexer():
         self.mode = Mode.NOCONCAT
     
     def handleSymbol(self, char, line_num, char_num):
-        try:
-            if char == '~':
-                self.mode = Mode.COMMENT
-                return
+        if char == '~':
+            self.mode = Mode.COMMENT
+            return
 
-            if char == '\"':
-                self.tstack.append(StringToken(line_num, char_num))
-                self.mode = Mode.STRING
-                return
-            
-            # integer + dot = integer-only decimal
-            if self.tstack[-1].getType() == 'INTEGER' and char == '.':
-                self.tstack[-1].concatValue(char)
-            
-            # for double-character symbols
-            elif self.tstack[-1].getType() in ['NOT', 'ASSIGNMENT',
-                            'LESS_THAN', 'GREATER_THAN'] and char == '=':
-               self.tstack[-1].concatValue()
+        if char == '\"':
+            self.tstack.append(StringToken(line_num, char_num))
+            self.mode = Mode.STRING
+            return
+        
+        # integer + dot = integer-only decimal
+        if self.getPrevTokenType() == 'INTEGER' and char == '.':
+            self.tstack[-1].concatValue(char)
+        
+        # for double-character symbols
+        elif self.getPrevTokenType() in ['NOT', 'ASSIGNMENT',
+                        'LESS_THAN', 'GREATER_THAN'] and char == '=':
+            self.tstack[-1].concatValue()
 
 
-            # last stack element is word, delimiter, decimal, string, indent
-            # or even single-character symbol
-            else:
-                self.tstack.append(SymbolToken(
-                    SYM_DICT[char], char, line_num, char_num))
-
-        # self.tstack is empty
-        except IndexError:
+        # last stack element is word, delimiter, decimal, string, indent
+        # or even single-character symbol
+        else:
             self.tstack.append(SymbolToken(
                 SYM_DICT[char], char, line_num, char_num))
-        
+
         self.mode = Mode.NORMAL
 
     # Note: negative numbers handled in syntax analyzer
@@ -138,11 +132,11 @@ class Lexer():
             return
 
         # self.mode is Mode.NORMAL
-        if self.tstack[-1].getType() in ['INTEGER', 'DECIMAL',
+        if self.getPrevTokenType() in ['INTEGER', 'DECIMAL',
                                          'RESERVED_WORD', 'IDENTIFIER']:
             self.tstack[-1].concatValue(char)
 
-        elif self.tstack[-1].getType() == 'PERIOD':
+        elif self.getPrevTokenType() == 'PERIOD':
             self.tstack.pop()
             self.tstack.append(
                     NumberToken('DECIMAL', f'.{char}', line_num, char_num))
@@ -157,11 +151,11 @@ class Lexer():
             return
 
         # self.mode is Mode.NORMAL
-        if self.tstack[-1].getType() in ['RESERVED_WORD', 'IDENTIFIER']:
+        if self.getPrevTokenType() in ['RESERVED_WORD', 'IDENTIFIER']:
             self.tstack[-1].concatValue(char)
 
         # scientific notation handled in syntax analyzer
-        elif self.tstack[-1].getType() in ['INTEGER', 'DECIMAL'] and char == 'e':
+        elif self.getPrevTokenType() in ['INTEGER', 'DECIMAL'] and char == 'e':
             self.tstack.append(SymbolToken('EXPONENT', 'e', line_num, char_num))
             self.mode = Mode.NOCONCAT
             return
@@ -173,6 +167,11 @@ class Lexer():
         
     def getSymTable(self):
         return self.symtable
+    
+    def getPrevTokenType(self):
+        if len(self.tstack) == 0:
+            return None
+        return self.tstack[-1].getType()
 
     def createDebugFile(self):
         try:

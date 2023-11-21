@@ -11,60 +11,61 @@ python3 main.py [FILE]
 
 ### Lexical Analyzer
 - [X] Open file
-- [X] Check file extension, reject file if not .pfl
+- [X] Check file extension, reject file if not .ppf
 - [X] Integer and Decimal Checking
-- [ ] String Checking
-- [ ] Comment Checking
+- [X] String Checking
+- [X] Comment Checking
 - [X] Identifier Checking
-- [ ] Keyword Checking
-  - [ ] Conditional Keywords
-    - [ ] IF
-    - [ ] ELSE
-    - [ ] THEN
-  - [ ] Iterative Keywords
-    - [ ] FOR
-    - [ ] TO
-    - [ ] BY
-    - [ ] DO
-    - [ ] WHILE
-  - [ ] I/O Keywords
-    - [ ] INPUT
-    - [ ] OUTPUT
-  - [ ] Data Type Keywords
-    - [ ] INTEGER
-    - [ ] DECIMAL
-    - [ ] STRING
-    - [ ] BOOLEAN
-  - [ ] Declaration/Assignment Keywords
-    - [ ] SET
-    - [ ] AS
-- [ ] Reserved Words
-  - [ ] Boolean Values
-    - [ ] TRUE
-    - [ ] FALSE
-- [ ] Operators
-  - [ ] Arithmetic Operators
-    - [ ] +
-    - [ ] -
-    - [ ] *
-    - [ ] /
-    - [ ] %
-    - [ ] ^
+- [X] Keyword Checking
+- [X] Indentation Checking
+  - [X] Conditional Keywords
+    - [X] IF
+    - [X] ELSE
+    - [X] THEN
+  - [X] Iterative Keywords
+    - [X] FOR
+    - [X] TO
+    - [X] BY
+    - [X] DO
+    - [X] WHILE
+  - [X] I/O Keywords
+    - [X] INPUT
+    - [X] OUTPUT
+  - [X] Data Type Keywords
+    - [X] INTEGER
+    - [X] DECIMAL
+    - [X] STRING
+    - [X] BOOLEAN
+  - [X] Declaration/Assignment Keywords
+    - [X] SET
+    - [X] AS
+- [X] Reserved Words
+  - [X] Boolean Values
+    - [X] TRUE
+    - [X] FALSE
+- [X] Operators
+  - [X] Arithmetic Operators
+    - [X] +
+    - [X] -
+    - [X] *
+    - [X] /
+    - [X] %
+    - [X] ^
     - [ ] ONE MORE OPERATOR PLEASE
-  - [ ] Boolean Operators
-    - [ ] <
-    - [ ] >
-    - [ ] <=
-    - [ ] >=
-    - [ ] =
-    - [ ] =/=
-  - [ ] Logical Operators
-   - [ ] !!
-   - [ ] &&
-   - [ ] ||
-- [ ] Delimiters and Brackets
-- [ ] Error Checking
-- [ ] Output: text file containing the symbol table
+  - [X] Boolean Operators
+    - [X] <
+    - [X] >
+    - [X] <=
+    - [X] >=
+    - [X] =
+    - [X] =/=
+  - [X] Logical Operators
+   - [X] !!
+   - [X] &&
+   - [X] ||
+- [X] Delimiters and Brackets
+- [X] Error Checking
+- [X] Output: text file containing the symbol table
 
 ### Syntactic Analyzer
 

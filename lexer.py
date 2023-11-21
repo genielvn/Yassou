@@ -66,11 +66,15 @@ class Lexer():
             self.mode = Mode.NOCONCAT
 
     def handleString(self, char, line_num, char_num):
-        self.tstack[-1].concatValue(char)
+        if not self.getPrevTokenType() == 'STRING':
+            self.tstack.append(StringToken(line_num, char_num))
         if char == '\n' and self.mode == Mode.STRING:
             raise StringNotClosedError(char, line_num, char_num)
         if char == '\"':
-            self.mode = Mode.NOCONCAT    
+            self.mode = Mode.NOCONCAT
+            self.tstack.append(DelimiterToken(DELIMITER_DICT[char], char, line_num, char_num))
+            return
+        self.tstack[-1].concatValue(char)
 
     def handleWhitespace(self, char, line_num):
         if self.mode is Mode.INDENT:
@@ -84,23 +88,24 @@ class Lexer():
         if char == '\n':
             self.tstack.append(
                     DelimiterToken('SENTENCE_BREAK', '\\n', line_num, char_num))
+            return
+        elif char == '\"':
+            self.mode = Mode.STRING
+
+            self.tstack.append(
+                    DelimiterToken(DELIMITER_DICT[char], char, line_num, char_num))
         else:
             self.tstack.append(
                     DelimiterToken(DELIMITER_DICT[char], char, line_num, char_num))
+            self.mode = Mode.NOCONCAT
 
         # try:
         # except KeyError:    # Using newline as a dictionary key is an exception
 
-        self.mode = Mode.NOCONCAT
     
     def handleSymbol(self, char, line_num, char_num):
         if char == '~':
             self.mode = Mode.COMMENT
-            return
-
-        if char == '\"':
-            self.tstack.append(StringToken(line_num, char_num))
-            self.mode = Mode.STRING
             return
         
         # integer + dot = integer-only decimal

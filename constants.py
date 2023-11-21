@@ -5,8 +5,8 @@ UPPERCASE               = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 LOWERCASE               = UPPERCASE.lower()
 DIGITS                  = '0123456789'
 LETTERS                 = UPPERCASE + LOWERCASE + '_'
-SYMBOLS                 = './*+-~!|&=\\%^<>\"'
-DELIMITERS              = ',()\n'
+SYMBOLS                 = './*+-~!|&=%^<>'
+DELIMITERS              = ',()\n\"'
 WHITESPACE              = ' \t'
 
 # tokens
@@ -33,7 +33,8 @@ SYM_DICT = {
 DELIMITER_DICT = {
         '('  : 'EXPR_BEGIN',
         ')'  : 'EXPR_TERMINATE',
-        ','  : 'COMMA'
+        ','  : 'COMMA',
+        '\"' : 'STR_DELIMITER'
         }
 
 # reserved words

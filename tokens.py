@@ -61,7 +61,8 @@ class WordToken(Token):
 # String literals include ""
 class StringToken(Token):
     def __init__(self, line_num, char_num):
-        super().__init__('STRING', '\"', line_num, char_num)
+        super().__init__('STRING', '', line_num, char_num)
+        self.value = str(self.value)
 
 # Refer to SYM_DICT for SymbolToken token_type and value
 class SymbolToken(Token):

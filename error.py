@@ -20,7 +20,7 @@ class InvalidFileTypeError(Error):
         self.details    = f'File \"{file}\" is an invalid PPF file.'
 
 class CreateDebugFileError(Error):
-    def __init_(self, file):
+    def __init__(self, file):
         super().__init__()
         self.error_name = 'CreateDebugFile'
         self.details    = f'Cannot create debug file.'

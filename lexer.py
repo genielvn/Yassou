@@ -55,7 +55,7 @@ class Lexer():
                 except Error as error:
                     error.invoke(__file__)
 
-            if len(self.tstack) != 1:   # contains <1 tokens (besides "\n")
+            if len(self.tstack) != 0:   # contains <1 tokens (besides "\n")
                 self.symtable.extend(self.tstack)
             self.tstack = []
         

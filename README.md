@@ -49,9 +49,9 @@ python3 main.py [FILE]
     - [X] -
     - [X] *
     - [X] /
+    - [X] //
     - [X] %
     - [X] ^
-    - [ ] ONE MORE OPERATOR PLEASE
   - [X] Boolean Operators
     - [X] <
     - [X] >

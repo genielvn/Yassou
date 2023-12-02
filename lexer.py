@@ -109,6 +109,12 @@ class Lexer():
             return
         
         # integer + dot = integer-only decimal
+        if self.mode in [Mode.NOCONCAT, Mode.INDENT]:
+            self.tstack.append(SymbolToken(
+                SYM_DICT[char], char, line_num, char_num))
+            self.mode = Mode.NORMAL
+            return
+    
         if self.getPrevTokenType() == 'INTEGER' and char == '.':
             self.tstack[-1].concatValue(char)
         
@@ -121,16 +127,10 @@ class Lexer():
         elif self.getPrevTokenType() == 'DIVIDE' and char == '/':
             logging.debug("entered /")
             self.tstack[-1].concatValue(char)
-        
-
-        # last stack element is word, delimiter, decimal, string, indent
-        # or even single-character symbol
         else:
-            self.tstack.append(SymbolToken(
+                        self.tstack.append(SymbolToken(
                 SYM_DICT[char], char, line_num, char_num))
-
-        self.mode = Mode.NORMAL
-
+                        
     # Note: negative numbers handled in syntax analyzer
     def handleDigit(self, char, line_num, char_num):
         if self.mode in [Mode.NOCONCAT, Mode.INDENT]:
@@ -149,6 +149,9 @@ class Lexer():
                     NumberToken('DECIMAL', f'.{char}', line_num, char_num))
         else:
             self.tstack.append(NumberToken('INTEGER', char, line_num, char_num))
+            
+        self.mode = Mode.NORMAL
+        
 
     def handleLetter(self, char, line_num, char_num):
         if self.mode in [Mode.NOCONCAT, Mode.INDENT]:

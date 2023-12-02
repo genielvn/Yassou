@@ -1,1 +1,3 @@
 **/__pycache__/
+.lexer_debug.txt
+test.ppf

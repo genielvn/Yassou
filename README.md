@@ -72,5 +72,6 @@ python3 main.py [FILE]
 ...
 
 ### Semantic Analyzer
-
+- [ ] Conversion from INTEGER to DECIMAL when division results to a floating number
+- [ ] Unique ID for IDENTIFIERs
 ...

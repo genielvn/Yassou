@@ -15,6 +15,7 @@ SYM_DICT = {
         '-'  : 'MINUS',
         '*'  : 'MULTIPLY',
         '/'  : 'DIVIDE',
+        '//' : 'DIVIDE_NO_REM',
         '%'  : 'MODULO',
         '^'  : 'RAISE',
         '!' : 'NOT',

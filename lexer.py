@@ -115,8 +115,13 @@ class Lexer():
         # for double-character symbols
         elif self.getPrevTokenType() in ['NOT', 'ASSIGNMENT',
                         'LESS_THAN', 'GREATER_THAN'] and char == '=':
-            self.tstack[-1].concatValue()
-
+            logging.debug("entered =")
+            self.tstack[-1].concatValue(char)
+        
+        elif self.getPrevTokenType() == 'DIVIDE' and char == '/':
+            logging.debug("entered /")
+            self.tstack[-1].concatValue(char)
+        
 
         # last stack element is word, delimiter, decimal, string, indent
         # or even single-character symbol

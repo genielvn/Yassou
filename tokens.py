@@ -70,8 +70,8 @@ class SymbolToken(Token):
         super().__init__(token_type, value, line_num, char_num)
 
     # concat must only be equal
-    def concatValue(self):
-        self.value += '='
+    def concatValue(self, char):
+        self.value += char
         self.type = SYM_DICT[self.value]
 
 # length of whitespace == tab level

@@ -193,9 +193,10 @@ class Lexer():
 
                 print(" " + string)
                 debug_file.write(string + '\n')
+                
+            logging.debug("The symbol table has been saved in .lexer_debug.txt.")
         except CreateDebugFileError as error:
             error.invoke(__file__)
         
         else:
             debug_file.close()
-

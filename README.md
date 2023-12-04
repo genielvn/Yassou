@@ -1,8 +1,8 @@
-# PseudoFile Language (This is a temporary name lmao)
-PseudoFile Language (PFL) is a general-purpose programming language named after the terms "pseudocode" and "compile", which means to compile pseudocode.
+# Yassou
+Yassou is a beginner-friendly, general-purpose programming language coined after the Greek word meaning "Hello." This language is simple and easy to understand as it uses natural syntax for better readability and writability. It serves as the bridge between pseudocode and other general-purpose programming languages, which helps programmers and readers simulate the logic of the code to spot errors and inconsistencies before the actual programming process.  
 
 ## Developing
-To run a (.ppf) file:
+To run a (.yass) file:
 ```
 python3 main.py [FILE]
 ```

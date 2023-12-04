@@ -1,0 +1,11 @@
+SET nope AS BOOLEAN
+SET nope = FALSE
+
+SET yes AS BOOLEAN
+SET yes = !nope | nope
+
+SET and_true AS BOOLEAN
+SET and_true = nope & yes
+
+SET math AS INTEGER
+SET math = (1 + 2) * 3 ^ 8

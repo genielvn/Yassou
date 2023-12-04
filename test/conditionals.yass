@@ -1,0 +1,9 @@
+IF variable < 35
+	SET variable = variable + 1
+ELSE
+	SET variable = variable - 1
+
+IF variable == TRUE THEN
+	SET variable = FALSE
+ELSE IF variable == FALSE THEN
+	SET variable = TRUE

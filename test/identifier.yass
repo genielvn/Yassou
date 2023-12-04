@@ -1,0 +1,9 @@
+SET variable1 AS INTEGER
+SET variable2 AS DECIMAL
+SET variable3 AS STRING
+SET variable4 AS BOOLEAN
+
+SET variable1 = 727
+SET variable2 = 7.27
+SET variable3 = "WYSI"
+SET variable4 = TRUE

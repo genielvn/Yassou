@@ -1,0 +1,8 @@
+FOR x = 0 TO 10 DO
+    OUTPUT x
+
+FOR y = 0 TO 10 BY 2 DO
+    OUTPUT y
+
+WHILE TRUE DO
+    OUTPUT "Infinite Loop!"

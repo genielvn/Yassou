@@ -17,7 +17,7 @@ class InvalidFileTypeError(Error):
     def __init__(self, file):
         super().__init__()
         self.error_name = 'InvalidFileType'
-        self.details    = f'File \"{file}\" is an invalid PPF file.'
+        self.details    = f'File \"{file}\" is an invalid YASS file.'
 
 class CreateDebugFileError(Error):
     def __init__(self, file):

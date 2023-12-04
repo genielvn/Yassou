@@ -20,7 +20,7 @@ class Interpreter():
         parser.add_argument('filename',
                             metavar='FILE',
                             type=argparse.FileType('r',encoding='UTF-8'),
-                            help='.ppf file to process')
+                            help='.yass file to process')
 
         parser.add_argument('-d', '--debug',
                             action='store_true',
@@ -42,7 +42,7 @@ class Interpreter():
             file = self.arguments.filename
 
             # file detection
-            if not file.name.endswith('.ppf'):
+            if not file.name.endswith('.yass'):
                 raise InvalidFileTypeError(file.name)
 
         except InvalidFileTypeError as error:

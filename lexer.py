@@ -121,11 +121,9 @@ class Lexer():
         # for double-character symbols
         elif self.getPrevTokenType() in ['NOT', 'ASSIGNMENT',
                         'LESS_THAN', 'GREATER_THAN'] and char == '=':
-            logging.debug("entered =")
             self.tstack[-1].concatValue(char)
         
         elif self.getPrevTokenType() == 'DIVIDE' and char == '/':
-            logging.debug("entered /")
             self.tstack[-1].concatValue(char)
         else:
                         self.tstack.append(SymbolToken(

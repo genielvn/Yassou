@@ -15,7 +15,7 @@ class Interpreter():
 
     def getAttributes(self):
         parser = argparse.ArgumentParser(
-                description='PseudoFile language interpreter.')
+                description='Yassou language interpreter.')
 
         parser.add_argument('filename',
                             metavar='FILE',
@@ -53,4 +53,3 @@ class Interpreter():
 
 if __name__ == "__main__":
     interpreter = Interpreter()
-

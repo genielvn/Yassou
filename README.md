@@ -4,14 +4,14 @@ Yassou is a beginner-friendly, general-purpose programming language coined after
 ## Developing
 To run a (.yass) file:
 ```
-python3 main.py [FILE]
+python3 main.py [-h] [-d] [FILE]
 ```
 
 ## Checklist
 
 ### Lexical Analyzer
 - [X] Open file
-- [X] Check file extension, reject file if not .ppf
+- [X] Check file extension, reject file if not .yass
 - [X] Integer and Decimal Checking
 - [X] String Checking
 - [X] Comment Checking

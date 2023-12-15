@@ -1,0 +1,2 @@
+IF var1 == 1 THEN
+	PRINT var1

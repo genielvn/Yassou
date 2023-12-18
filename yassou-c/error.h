@@ -2,38 +2,82 @@
 #define ERROR_H
 
 #include <errno.h>
+#include "global.h"
 
-#define MSG_MEMORY_FAIL ": Cannot allocate memory."
-#define MSG_DEBUG_FAIL_CREATE ": Unable to create debug file."
-#define MSG_INVALID_CHAR ": Invalid input character: "
-#define MSG_INVALID_FILE ": File is an invalid file."
-#define MSG_NO_FILE_PROVIDED ": No file provided."
-#define MSG_NOT_MAIN_FILE ": Not main file."
+#define INVOKE_ERROR(str, ...) \
+	do { \
+		printf("ERROR: " __FILE__ ": " str "\n", ##__VA_ARGS__); \
+		exit(EXIT_FAILURE); \
+	} while (0);
 
-enum ErrorName {
-	MEMORY_ALLOCATION_ERROR,
-	INVALID_CHARACTER_ERROR,
-	DEBUG_FILE_ERROR,
-	INVALID_FILE_ERROR,
-	WRONG_PROGRAM_ERROR,
-	NO_FILE_PROVIDED,
-};
 
-void invoke_error(const char *error_msg, char *error_name);
+#define MEMCHECK \
+	do { \
+		if (errno == ENOMEM) \
+			INVOKE_ERROR("Cannot allocate memory. [MEM_ALLOC_ERROR]"); \
+	} while (0);
 
-#define MEMCHECK			\
-	if (errno == ENOMEM)	\
-		invoke_error(MSG_MEMORY_FAIL, "MEMORY_ALLOCATION_ERROR");
+#define FILE_EXIST_CHECK(file) \
+	do { \
+		if (errno == ENOENT)  \
+			INVOKE_ERROR("No \"%s\" file. [NONEXISTENT_FILE_ERROR]", file); \
+	} while (0);
 
-#define FILEEXISTCHECK		\
-	if (errno == ENOENT)  \
-		invoke_error(MSG_INVALID_FILE, "INVALID_FILE_ERROR");
+#define DEBUG_FILE_CHECK \
+	do { \
+		if (errno) \
+			INVOKE_ERROR("Cannot create debug file. [DEBUG_CREATE_ERROR]"); \
+	} while (0);
 
-#define DEBUGFILECHECK		\
-	if (errno)				\
-		invoke_error(MSG_DEBUG_FAIL_CREATE, "DEBUG_CREATE_FAIL_ERROR");
+#define WRONG_FILE_EXT_ERROR(file) \
+	do { \
+		INVOKE_ERROR("File \"%s\" is not a valid Yassou file. [WRONG_FILE_EXT_ERROR]", file); \
+	} while (0);
 
-#define FILEPROVIDED		\
-		invoke_error(MSG_NO_FILE_PROVIDED, "NO_FILE_PROVIDED");
+#define MULTI_FILE_ERROR \
+	do { \
+		INVOKE_ERROR("Multiple files supplied. [MULTI_FILE_ERROR]"); \
+	} while (0);
+
+#define NO_FILE_ERROR \
+	do { \
+		printf("usage: yassou [FILE] [-d]\n\n"); \
+		INVOKE_ERROR("No file supplied. [NO_FILE_ERROR]"); \
+	} while (0);
+
+#define PARAMETER_ERROR \
+	do { \
+		INVOKE_ERROR("Unknown parameter supplied. [PARAMETER_ERROR]"); \
+	} while (0);
+
+#define NUMBER_PLUS_LETTER_ERROR(ch, line) \
+	do { \
+		INVOKE_ERROR("Attempted to concatenate \'%c\' to a number. (line %d) [NUMBER_PLUS_LETTER_ERROR]", ch, line); \
+	} while (0);
+
+#define UNKNOWN_CHARACTER_ERROR(ch, line) \
+	do { \
+		INVOKE_ERROR("Supplied unknown character \'%c\'. (line %d) [INVALID_CHARACTER_ERROR]", ch, line); \
+	} while (0);
+
+#define MULTIPLE_PERIOD_ERROR(line) \
+	do { \
+		INVOKE_ERROR("Multiple decimal point in a decimal token. (line %d) [MULTIPLE_PERIOD_ERROR]", line); \
+	} while (0);
+
+#define PERIOD_ONLY_NUMBER_ERROR(line) \
+	do { \
+		INVOKE_ERROR("Encountered a decimal-point-only token. (line %d) [PERIOD_ONLY_NUMBER_ERROR]", line); \
+	} while (0);
+
+#define SPACE_REQUIRED_ERROR(line) \
+	do { \
+		INVOKE_ERROR("Space delimiter required. (line %d) [SPACE_REQUIRED_ERROR]", line) \
+	} while (0);
+
+#define STRING_ERROR(line) \
+	do { \
+		INVOKE_ERROR("String token is terminated unexpectedly. (line %d)", line); \
+	} while (0);
 
 #endif

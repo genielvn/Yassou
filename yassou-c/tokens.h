@@ -1,4 +1,4 @@
-#include "constants.h"
+#include "global.h"
 
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
 #define SIZE (26)

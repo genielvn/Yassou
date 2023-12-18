@@ -1,84 +1,67 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <ctype.h>
-#include <string.h>
-#include "error.h"
-#include "constants.h"
+#include "global.h"
+#include "lexer.h"
 
-char filename[];
+#define EXT ".yass"
 
-typedef struct arguments
-{
-    bool debugging;
-} Args;
+Interpreter *interpreter;
 
-
-int main(int argc, char **argv)
-{
-    if (argc == 1)
-    {
-        printf("usage: yassou [FILE] [-d]");
-        return -1;
-    }
-
-    Args arguments;
-    bool file_found = false;
-
-    for (int i = 1; i < argc; i++)
-    {
-        if (argv[i][0] != '-')
-        {
-            if (file_found) {
-                printf("ERROR : Only one file for compiling.\n");
-                return -1;
-            }
-            strcpy(filename, argv[i]);
-            file_found = true;
-            continue;
-        }
-        switch (argv[i][1])
-        {
-            case 'd':
-                if (!arguments.debugging) printf("DEBUG : Debugging enabled\n");
-                arguments.debugging = true;
-                break;
-            
-            default:
-                printf("ERROR : Flag -%c is not valid.", argv[i][1]);
-                return -1;
-        }
-    }
-
-    if (!file_found)
-    {
-        printf("usage: yassou [FILE] [-d]\n");
-        FILEPROVIDED;
-        return -1;
-    }
-
-    if (!get_file_extension(filename, ".yass"))
-    {
-        printf("ERROR : File %s is not a valid YASS file.", filename);
-        return -1;
-    }
-
-    FILE *file = fopen(filename, "r");
-    FILEEXISTCHECK;
+void parseFile(Interpreter *interpreter, char *file) {
+	if (interpreter->file_name != NULL) MULTI_FILE_ERROR;
+	
+	interpreter->file_name = (char*)malloc(strlen(file)*sizeof(char));
+	strcpy(interpreter->file_name, file);
 }
 
+void parseParameter(Interpreter *interpreter, char *string) {
+	for (unsigned int i = 1; string[i] != '\0'; ++i) {
+		switch (string[i]) {
+			case 'd':
+				interpreter->debugging = true;
+				DEBUG_MSG("Debugging started...");
+				break;
+			default:
+				PARAMETER_ERROR;
+		}
+	}
+}
 
-int get_file_extension(const char* filename, const char* ext)
-{
-    int path_idx = strlen(filename) - 1;
-    int ext_idx = strlen(ext) - 1;
+bool isSameFileExt(const char *file, const char *target_ext) {
+	char *file_ext = strrchr(file, '.');
 
-    // search extension from the last character
-    for (; path_idx >= 0 && ext_idx >= 0; path_idx--, ext_idx--) {
-        printf("%c=%c", filename[path_idx], ext[ext_idx]);
-        if (tolower(filename[path_idx]) != tolower(ext[ext_idx])) {
-            return false;
-        }
-    }
-    return true;
+	if (file_ext == NULL) return false;
+
+	return strcmp(file_ext, target_ext);
+}
+
+void parseArguments(Interpreter *interpreter, int argc, char **argv) {
+	if (argc == 1)
+		NO_FILE_ERROR;
+
+	interpreter->debugging = false;
+
+	for (unsigned int i = 1; i < argc; ++i) {
+		if (argv[i][0] != '-') {
+			parseFile(interpreter, argv[i]);
+			continue;
+		}
+
+		parseParameter(interpreter, argv[i]);
+	}
+
+	if (interpreter->file_name == NULL)
+		NO_FILE_ERROR;
+
+	if (isSameFileExt(interpreter->file_name, EXT))
+		WRONG_FILE_EXT_ERROR(interpreter->file_name);
+
+	interpreter->file = fopen(interpreter->file_name, "r");
+	FILE_EXIST_CHECK(interpreter->file_name);
+}
+
+int main(int argc, char **argv) {
+	interpreter = (Interpreter*)calloc(1, sizeof(Interpreter));
+	interpreter->debugging = true;
+
+	parseArguments(interpreter, argc, argv);
+	interpreter->symtable = tokenize(interpreter->file);
 }

@@ -3,17 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "constants.h"
-
-#define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
-#define SIZE (26)
-#define CHAR_TO_INDEX(c) ((int)c - (int)'A')
-
-typedef struct Trie
-{
-    struct Trie *children[SIZE];
-    
-    TokenType type;
-} Trie;
+#include "tokens.h"
 
 Trie *createNode()
 {
@@ -66,7 +56,7 @@ TokenType getType(Trie *root, const char *key)
     return (node->type);
 }
 
-void main()
+Trie* getReservedWordTrie()
 {
     Trie *root = createNode();
     for (int i = 0; i < ARRAY_SIZE(RESERVED_WORDS); i++)
@@ -75,10 +65,6 @@ void main()
         insert(root, RESERVED_WORDS[i]);
     }
 
-    char test_cases[5][10] = {"FOR", "variable1", "SET", "SETAS", "IF"};
-
-    for (int i = 0; i < ARRAY_SIZE(test_cases); i++)
-    {
-        printf("%s = %d\n", test_cases[i], getType(root, test_cases[i]));
-    }
+    return root;
 }
+

@@ -45,12 +45,4 @@ typedef enum TokenType {
 	DECIMAL				// ([0-9])*.[0-9]+
 } TokenType;
 
-char RESERVED_WORDS[][18] = {
-	"FOR", "TO", "BY", "DO", "WHILE",
-	"IF", "ELSE", "THEN", "INPUT", "OUTPUT",
-	"INTEGER", "STRING", "DECIMAL", "BOOLEAN",
-	"TRUE", "FALSE", 
-	"SET", "AS"
-};
-
 #endif

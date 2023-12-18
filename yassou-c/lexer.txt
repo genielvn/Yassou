@@ -53,23 +53,19 @@ void appendToken(Token *token, Lexer *lexer) {
 void handleString(Lexer *lexer) {
 	Token *delim1 = createToken(STR_DELIMITER, *lexer);
 	appendToken(delim1, lexer);
-	moveCursor(lexer, false);
-	
 	Token *string = createToken(STRING, *lexer);
-	moveCursor(lexer, false);
-	while (lexer->current != '\"') {
+
+	do {
 		string->length++;
 		moveCursor(lexer, false);
 
-		if (lexer->current == '\n') {
-			perror("String not closed.\n");
-			exit(EXIT_FAILURE);
-		}
+		if (lexer->current == '\n')
+			//Invoke STR_ERROR
 		if (lexer->current == '\\') {
 			moveCursor(lexer, false);
 			continue;
 		}
-	}
+	} while (lexer->current != '\"');
 	appendToken(string, lexer);
 	
 	Token *delim2 = createToken(STR_DELIMITER, *lexer);
@@ -79,8 +75,7 @@ void handleString(Lexer *lexer) {
 
 void handleComment(Lexer *lexer) {
 	Token *comment = createToken(COMMENT, *lexer);
-	moveCursor(lexer, false);
-
+	
 	do {
 		comment->length++;
 		moveCursor(lexer, false);	
@@ -100,11 +95,11 @@ void handleCommentOrString(Lexer *lexer) {
 	else if (lexer->current == '~')
 		handleComment(lexer);
 
-	if (!isspace(lexer->current)) {
-		perror("Requires space in noconcat.\n");
-		exit(EXIT_FAILURE);
-		//Invoke error since this is noconcat	
-	}
+	if (lexer->current != '\n' && lexer->current != ' ')
+		perror("Must be noconcat!");
+		//Invoke error since this is noconcat
+	
+	//Return to handleCharacter()
 }
 
 void handleNumber(Lexer *lexer) {
@@ -416,13 +411,12 @@ void handleWord(Lexer *lexer) {
 	//Second check for reserved word
 	if (!isalnum(lexer->current) && lexer->current != '_') {
 		appendToken(word, lexer);	//Word is reserved
-		printf("DEBUG: Appended a reserved word or a one-letter identifier token.\n");
+		printf("DEBUG: Appended a reserved word token.\n");
 		return;
 	}
 
 	//identifiers: may fail first check but must fail the second check
 	word->type = IDENTIFIER;
-	moveCursor(lexer, false);
 	while (isalnum(lexer->current) || lexer->current == '_') {
 		printf("DEBUG: Appending %c to token...\n", lexer->current);
 		word->length++;
@@ -508,8 +502,6 @@ void handleSymbol(Lexer *lexer) {
 				symbol->type = NOT_EQUAL;
 			}
 			break;
-		default:
-			perror("Unknown symbol.");
 	}
 
 	printf("DEBUG: Appended a symbol.\n");	
@@ -528,11 +520,9 @@ void handleOtherValidCharacters(Lexer *lexer) {
 
 void handleCharacter(Lexer *lexer) {
 	//Check whether character is invalid
-	if (iscntrl(lexer->current) && !isspace(lexer->current)) {
-		perror("Unknown character.");
+	if (iscntrl(lexer->current))
 		exit(EXIT_FAILURE);
 		//invoke_error(...)
-	}
 
 	//Start of indention
 	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t')) {
@@ -557,8 +547,16 @@ void handleCharacter(Lexer *lexer) {
 	if (lexer->current == '\"' || lexer->current == '~')
 		handleCommentOrString(lexer);
 
-	if (isgraph(lexer->current) || lexer->current == ' ' || lexer->current == '\t')
+	if (isalnum(lexer->current) || lexer->current == ' ' || lexer->current == '\t')
 		handleOtherValidCharacters(lexer);
+	
+	//Symbol that may or may not be included in input alphabet
+	else if (isgraph(lexer->current)){
+		//Check validity since it may not be part of input alphabet
+		//checkValidity(current);
+		//Then go to Normal mode like above
+		handleOtherValidCharacters(lexer);
+	}
 	
 	if (lexer->current == '\n' || lexer->current == EOF) {
 		Token *newline_token = createToken(SENTENCE_BREAK, *lexer);
@@ -568,19 +566,12 @@ void handleCharacter(Lexer *lexer) {
 	}
 }
 
-void listTokens(Lexer *lexer) {
-	printf("ROW\tCOL\t%-20s\tLENGTH\n", "VALUE");
-	for (Token *current = lexer->symtable; current != NULL; current = current->next) {
-		fseek(lexer->file, current->location.offset, SEEK_SET);
+void listTokens(Lexer lexer) {
+	printf("ROW\tCOL\tVALUE\n");
+	for (Token *current = lexer.symtable; current != NULL; current = current->next) {
 		char value[current->length+1];
-		fread(value, current->length, 1, lexer->file);
-		value[current->length] = '\0';
-		if (*value == '\n')
-			printf("%d\t%d\t%-20s\t%d\n", current->location.row, current->location.column, "\\n", current->length);
-		else if (*value == EOF)
-			printf("%d\t%d\t%-20s\t%d\n", current->location.row, current->location.column, "EOF", current->length);
-		else 
-			printf("%d\t%d\t%-20s\t%d\n", current->location.row, current->location.column, value, current->length);
+		fread(value, current->length, 1, lexer.file);
+		printf("%d\t%d\t%s\n", current->location.row, current->location.column, value);
 	}
 }
 
@@ -600,7 +591,8 @@ Token *tokenize(FILE *input_file) {
 
 	DEBUG_MSG("DEBUG: Successfully created symtable.\n");
 	
-	listTokens(&lexer);
+	fseek(lexer.file, 0, SEEK_SET);
+	listTokens(lexer);
 	return lexer.symtable;
 }
 

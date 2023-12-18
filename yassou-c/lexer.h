@@ -2,6 +2,7 @@
 
 #define LEXER_H
 #include <stddef.h>
+#include <stdbool.h>
 #include "constants.h"
 
 typedef struct Position {
@@ -13,17 +14,18 @@ typedef struct Position {
 
 typedef struct Token {
 	TokenType type;					// refer to constants.h
-	unsigned int offset;			// offset
+	int offset;			// offset
 	size_t length;					// character length
 	struct Token *previous, *next;
-	Location location;	// doubly-linked list
+	Position location;	// doubly-linked list
 } Token;
 
 typedef struct Lexer {
 	FILE *file;
 	char current;
-	Location cursor;
-	Token *symtable;
+	Position cursor;
+	Token *symtable, *last;
+	bool indent;
 } Lexer;
 
 typedef struct Location {

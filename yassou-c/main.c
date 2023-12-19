@@ -5,6 +5,14 @@
 
 Interpreter *interpreter;
 
+void printHelp(void) {
+	printf("usage: ./yassou [-h] [-d] FILE\n\n");
+	printf("Yassou language interpreter.\n\n");
+	printf("positional argument:\n  %-6s .yass file to process\n\n", "FILE");
+	printf("options:\n  %-6s show this help message and exit\n", "-d");
+	printf("  %-6s enable debugging\n", "-h");
+}
+
 void freeInterpreter(Interpreter *interpreter) {
 	DEBUG_MSG("Freeing interpreter memory...");
 	free(interpreter->file_name);
@@ -28,8 +36,7 @@ void parseParameter(Interpreter *interpreter, char *string) {
 				DEBUG_MSG("Debugging started...");
 				break;
 			case 'h':
-				//Help
-				printf("Help dialog\n");
+				printHelp();
 				exit(EXIT_SUCCESS);
 				break;
 
@@ -48,8 +55,10 @@ bool isSameFileExt(const char *file, const char *target_ext) {
 }
 
 void parseArguments(Interpreter *interpreter, int argc, char **argv) {
-	if (argc == 1)
+	if (argc == 1) {
+		printHelp();
 		NO_FILE_ERROR;
+	}
 
 	interpreter->debugging = false;
 

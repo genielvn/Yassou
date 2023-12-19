@@ -100,11 +100,9 @@ void handleNumber(Lexer *lexer) {
 		} else if (lexer->current == '.' || number->type == DECIMAL) {
 			MULTIPLE_PERIOD_ERROR(lexer->cursor.row);
 		}
-		
-		if (isalpha(lexer->current)) {
-			NUMBER_PLUS_LETTER_ERROR(lexer->current, lexer->cursor.row);
-		}
 	}
+	if (isalpha(lexer->current))
+		NUMBER_PLUS_LETTER_ERROR(lexer->current, lexer->cursor.row);
 	
 	if (number->length == 1 && number->type == DECIMAL)
 		PERIOD_ONLY_NUMBER_ERROR(lexer->cursor.row);
@@ -150,7 +148,7 @@ void handleCommentOrString(Lexer *lexer) {
 	else if (lexer->current == '~')
 		handleComment(lexer);
 
-	if (!isspace(lexer->current))
+	if (!isspace(lexer->current) && lexer->current != EOF)
 		SPACE_REQUIRED_ERROR(lexer->cursor.row);
 }
 
@@ -176,13 +174,15 @@ void handleCharacter(Lexer *lexer) {
 	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t'))
 		handleIndention(lexer);
 
-	lexer->indent = false;	
+	if (lexer->current == '\n' || lexer->current == EOF) {
+		handleNewline(lexer);
+		return;
+	}
+
 	if (lexer->current == ' ' || lexer->current == '\t')
 		moveCursor(lexer, false);	//Ignoring whitespace
-
-	if (lexer->current == '\n' || lexer->current == EOF)
-		handleNewline(lexer);
-
+	
+	lexer->indent = false;
 	if (lexer->current == '\"' || lexer->current == '~')
 		handleCommentOrString(lexer);
 
@@ -214,12 +214,9 @@ void printTokens(Lexer *lexer) {
 		char *token_type = TokenTypeStr[current->type];
 		size_t length = current->length;
 
-		if (*value == '\n') {
+		if (*value == '\n' || current->next == NULL) {
 			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
 			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
-		} else if (*value == EOF) {
-			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "EOF");
-			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "EOF");
 		} else {
 			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);
 			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);

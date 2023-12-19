@@ -68,9 +68,14 @@ void handleWord(Lexer *lexer) {
 	Token *word;
 
 	if (next != NULL) {
-		word = createToken(RESERVED_WORD, lexer);
-		while ((next = nextTrie(lexer->trie, lexer->current)) != NULL)
+		word = createToken(IDENTIFIER, lexer);
+		while ((next = nextTrie(next, lexer->current)) != NULL) {
 			concatenateValueToToken(word, lexer);
+			word->type = next->type;
+		}
+
+		if (word->type == 0)
+			word->type = IDENTIFIER;
 	} else {
 		word = createToken(IDENTIFIER, lexer);
 	}

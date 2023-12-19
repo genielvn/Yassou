@@ -55,7 +55,7 @@ static char RESERVED_WORDS[18][10] = {
 	"SET", "AS"
 };
 
-static char SYMBOLS[20][2] = {
+static char SYMBOLS[20][3] = {
 	",", "(", ")", "+", "-", "*",
 	"%", "^", "|", "&", "/", "=",
 	"<", ">", "!", "//", "==",

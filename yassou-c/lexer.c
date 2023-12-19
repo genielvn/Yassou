@@ -366,90 +366,19 @@ void handleWord(Lexer *lexer) {
 }
 
 void handleSymbol(Lexer *lexer) {
-	Token *symbol;	//Can be a symbol or a delimiter
-
-	switch(lexer->current) {
-		case ',':
-			symbol = createToken(COMMA, lexer);
-			break;
-		case '(':
-			symbol = createToken(EXPR_BEGIN, lexer);
-			break;
-		case ')':
-			symbol = createToken(EXPR_TERMINATE, lexer);
-			break;
-		case '+':
-			symbol = createToken(PLUS, lexer);
-			break;
-		case '-':
-			symbol = createToken(MINUS, lexer);
-			break;
-		case '*':
-			symbol = createToken(MULTIPLY, lexer);
-			break;
-		case '%':
-			symbol = createToken(MODULO, lexer);
-			break;
-		case '^':
-			symbol = createToken(RAISE, lexer);
-			break;
-		case '|':
-			symbol = createToken(OR, lexer);
-			break;
-		case '&':
-			symbol = createToken(AND, lexer);
-			break;
+	Trie *next = nextTrie(lexer->trie, lexer->current);
 	
-		case '/':
-			symbol = createToken(DIVIDE, lexer);
-			if (lexer->current == '/') {
-				concatenateValueToToken(symbol, lexer);
-				symbol->type = FLOOR_DIVIDE;
-			}
-			break;
-		case '=':
-			symbol = createToken(ASSIGNMENT, lexer);
-			moveCursor(lexer, false);
-			if (lexer->current == '=') {
-				concatenateValueToToken(symbol, lexer);
-				symbol->type = EQUALITY;
-			}
-			break;
-		case '<':
-			symbol = createToken(LESS_THAN, lexer);
-			if (lexer->current == '=') {
-				concatenateValueToToken(symbol, lexer);
-				symbol->type = LT_EQUAL;
-			}
-			break;
-		case '>':
-			symbol = createToken(GREATER_THAN, lexer);
-			if (lexer->current == '=') {
-				concatenateValueToToken(symbol, lexer);
-				symbol->type = GT_EQUAL;
-			}
-			break;
-		case '!':
-			symbol = createToken(NOT, lexer);
-			if (lexer->current == '=') {
-				concatenateValueToToken(symbol, lexer);
-				symbol->type = NOT_EQUAL;
-			}
-			break;
-		default:
-			UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
+	if (next == NULL)
+		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
+
+	Token *symbol = createToken(next->type, lexer);
+	
+	if ((next = nextTrie(next, lexer->current)) != NULL) {
+		concatenateValueToToken(symbol, lexer);
+		symbol->type = next->type;
 	}
 
 	DEBUG_MSG("Appended a symbol.");	
-}
-
-void handleOtherValidCharacters(Lexer *lexer) {
-	if (isalpha(lexer->current))
-		handleWord(lexer);			//Identifier and reserved words
-	else if (isdigit(lexer->current) || lexer->current == '.')
-		handleNumber(lexer);		//Integers and decimals
-	else if (isgraph(lexer->current))
-		handleSymbol(lexer);		//Delimiters and symbols
 }
 
 void handleCharacter(Lexer *lexer) {
@@ -485,8 +414,14 @@ void handleCharacter(Lexer *lexer) {
 	if (lexer->current == '\"' || lexer->current == '~')
 		handleCommentOrString(lexer);
 
-	if (isgraph(lexer->current) || isspace(lexer->current))
-		handleOtherValidCharacters(lexer);
+	if (isdigit(lexer->current) || lexer->current == '.')
+		handleNumber(lexer);	// Integers and decimals
+
+	else if (isalpha(lexer->current) || lexer->current == '_')
+		handleWord(lexer);		// Identifiers and reserved words
+
+	else if (isgraph(lexer->current))
+		handleSymbol(lexer);	// Symbols and other delimiters
 }
 
 void printTokens(Lexer *lexer) {
@@ -526,6 +461,7 @@ Token *tokenize(FILE *input_file) {
 	lexer.cursor.row = 1;	// 1-based, offset is 0-based
 	lexer.cursor.column = 1;
 	lexer.cursor.offset = 0;
+	lexer.trie = generateTrie();
 
 	while (!feof(lexer.file)) {
 		DEBUG_MSG("%c\t%d", lexer.current, lexer.cursor.column);
@@ -535,6 +471,7 @@ Token *tokenize(FILE *input_file) {
 	DEBUG_MSG("Successfully created symtable.");
 	
 	printTokens(&lexer);
+	freeTrie(lexer.trie);
 	return lexer.symtable;
 }
 

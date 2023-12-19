@@ -9,7 +9,7 @@ typedef struct Trie {
     TokenType type;
 } Trie;
 
-TokenType retrieveTokenType(Trie *root, const char *word);
+Trie *nextTrie(Trie *node, const char ch);
 
 Trie *generateTrie(void);
 

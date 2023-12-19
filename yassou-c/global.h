@@ -15,7 +15,6 @@ typedef enum TokenType {
 	COMMA,				// ,
 	EXPR_BEGIN,			// (
 	EXPR_TERMINATE,		// )
-	STR_DELIMITER,		// "
 	
 	PLUS,				// +
 	MINUS,				// -
@@ -37,6 +36,7 @@ typedef enum TokenType {
 	GT_EQUAL,			// >=
 	NOT_EQUAL,			// !=
 
+	STR_DELIMITER,		// "
 	COMMENT,			// ~
 	STRING,				// string data excluding ""
 
@@ -46,6 +46,21 @@ typedef enum TokenType {
 	INTEGER,			// [0-9]+
 	DECIMAL				// ([0-9])*.[0-9]+
 } TokenType;
+
+static char RESERVED_WORDS[18][10] = {
+	"FOR", "TO", "BY", "DO", "WHILE",
+	"IF", "ELSE", "THEN", "INPUT", "OUTPUT",
+	"INTEGER", "STRING", "DECIMAL", "BOOLEAN",
+	"TRUE", "FALSE",
+	"SET", "AS"
+};
+
+static char SYMBOLS[20][2] = {
+	",", "(", ")", "+", "-", "*",
+	"%", "^", "|", "&", "/", "=",
+	"<", ">", "!", "//", "==",
+	"<=", ">=", "!="
+};
 
 typedef struct Position {
 	unsigned int row, column, offset;

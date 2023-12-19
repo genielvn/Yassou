@@ -41,7 +41,7 @@
 
 #define NO_FILE_ERROR \
 	do { \
-		printf("usage: yassou [FILE] [-d]\n\n"); \
+		printf("usage: ./yassou [FILE] [-d]\n\n"); \
 		INVOKE_ERROR("No file supplied. [NO_FILE_ERROR]"); \
 	} while (0);
 

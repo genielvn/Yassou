@@ -5,6 +5,14 @@
 
 Interpreter *interpreter;
 
+void freeInterpreter(Interpreter *interpreter) {
+	DEBUG_MSG("Freeing interpreter memory...");
+	free(interpreter->file_name);
+	fclose(interpreter->file);
+	freeSymTable(interpreter->symtable);
+	free(interpreter);
+}
+
 void parseFile(Interpreter *interpreter, char *file) {
 	if (interpreter->file_name != NULL) MULTI_FILE_ERROR;
 	
@@ -19,6 +27,12 @@ void parseParameter(Interpreter *interpreter, char *string) {
 				interpreter->debugging = true;
 				DEBUG_MSG("Debugging started...");
 				break;
+			case 'h':
+				//Help
+				printf("Help dialog\n");
+				exit(EXIT_SUCCESS);
+				break;
+
 			default:
 				PARAMETER_ERROR;
 		}
@@ -60,8 +74,11 @@ void parseArguments(Interpreter *interpreter, int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	interpreter = (Interpreter*)calloc(1, sizeof(Interpreter));
-	interpreter->debugging = true;
 
 	parseArguments(interpreter, argc, argv);
+	DEBUG_MSG("Tokenizing...");
 	interpreter->symtable = tokenize(interpreter->file);
+	freeInterpreter(interpreter);
+
+	return EXIT_SUCCESS;
 }

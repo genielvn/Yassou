@@ -537,3 +537,11 @@ Token *tokenize(FILE *input_file) {
 	printTokens(&lexer);
 	return lexer.symtable;
 }
+
+void freeSymTable(Token *token) {
+	if (token == NULL) return;
+
+	freeSymTable(token->next);
+	DEBUG_MSG("Freeing tokens...");
+	free(token);
+}

@@ -11,7 +11,7 @@
 
 typedef enum TokenType {
 	SENTENCE_BREAK,		// NEWLINE
-	INDENT,
+	INDENTION,
 	COMMA,				// ,
 	EXPR_BEGIN,			// (
 	EXPR_TERMINATE,		// )
@@ -46,6 +46,16 @@ typedef enum TokenType {
 	INTEGER,			// [0-9]+
 	DECIMAL				// ([0-9])*.[0-9]+
 } TokenType;
+
+static char TokenTypeStr[29][16] = {
+	"SENTENCE_BREAK", "INDENTION", "COMMA", "EXPR_BEGIN",
+	"EXPR_TERMINATE", "PLUS", "MINUS", "MULTIPLY",
+	"MODULO", "RAISE", "OR", "AND", "DIVIDE",
+	"ASSIGNMENT", "LESS_THAN", "GREATER_THAN", "NOT",
+	"FLOOR_DIVIDE", "EQUALITY", "LT_EQUAL", "GT_EQUAL",
+	"NOT_EQUAL", "STR_DELIMITER", "COMMENT", "STRING",
+	"IDENTIFIER", "RESERVED_WORD", "INTEGER", "DECIMAL"
+};
 
 static char RESERVED_WORDS[18][10] = {
 	"FOR", "TO", "BY", "DO", "WHILE",

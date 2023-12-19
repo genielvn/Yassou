@@ -13,24 +13,19 @@ void moveCursor(Lexer *lexer, bool next_line) {
 		lexer->cursor.column++;
 	}
 	lexer->cursor.offset++;
-
-	DEBUG_MSG("Moved cursor to row %d, col %d...", lexer->cursor.row, lexer->cursor.column);
 }
 
 void appendToken(Token *token, Lexer *lexer) {
 	if (lexer->symtable == NULL) {
-		DEBUG_MSG("Appending first token...");
 		lexer->symtable = token;
 	}
 
 	if (lexer->last != NULL) {
-		DEBUG_MSG("Appending next token...");
 		lexer->last->next = token;
 		token->previous = lexer->last;
 	}
 
 	lexer->last = token;
-	DEBUG_MSG("Appended token.");
 }
 
 Token *createToken(TokenType type, Lexer *lexer) {
@@ -52,6 +47,67 @@ Token *createToken(TokenType type, Lexer *lexer) {
 void concatenateValueToToken(Token *token, Lexer *lexer) {
 	token->length++;
 	moveCursor(lexer, false);
+}
+
+void handleSymbol(Lexer *lexer) {
+	Trie *next = nextTrie(lexer->trie, lexer->current);
+	
+	if (next == NULL)
+		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
+
+	Token *symbol = createToken(next->type, lexer);
+	
+	if ((next = nextTrie(next, lexer->current)) != NULL) {
+		concatenateValueToToken(symbol, lexer);
+		symbol->type = next->type;
+	}
+}
+
+void handleWord(Lexer *lexer) {
+	Trie *next = nextTrie(lexer->trie, lexer->current);
+	Token *word;
+
+	if (next != NULL) {
+		word = createToken(RESERVED_WORD, lexer);
+		while ((next = nextTrie(lexer->trie, lexer->current)) != NULL)
+			concatenateValueToToken(word, lexer);
+	} else {
+		word = createToken(IDENTIFIER, lexer);
+	}
+
+	if (!isalnum(lexer->current) && lexer->current != '_')
+		return;	//reserved word or a one-letter identifier
+
+	word->type = IDENTIFIER;
+	while (isalnum(lexer->current) || lexer->current == '_')
+		concatenateValueToToken(word, lexer);
+}
+
+void handleNumber(Lexer *lexer) {
+	Token *number;
+	
+	if (isdigit(lexer->current))
+		number = createToken(INTEGER, lexer);
+	else
+		number = createToken(DECIMAL, lexer);
+	
+	while (isdigit(lexer->current) || lexer->current == '.') {
+		if (isdigit(lexer->current)) {
+			concatenateValueToToken(number, lexer);
+		} else if (lexer->current == '.' || number->type == INTEGER) {
+			concatenateValueToToken(number, lexer);
+			number->type = DECIMAL;
+		} else if (lexer->current == '.' || number->type == DECIMAL) {
+			MULTIPLE_PERIOD_ERROR(lexer->cursor.row);
+		}
+		
+		if (isalpha(lexer->current)) {
+			NUMBER_PLUS_LETTER_ERROR(lexer->current, lexer->cursor.row);
+		}
+	}
+	
+	if (number->length == 1 && number->type == DECIMAL)
+		PERIOD_ONLY_NUMBER_ERROR(lexer->cursor.row);
 }
 
 void handleString(Lexer *lexer) {
@@ -81,13 +137,11 @@ void handleString(Lexer *lexer) {
 void handleComment(Lexer *lexer) {
 	Token *comment = createToken(COMMENT, lexer);
 
-	do {
+	while (lexer->current != '~' && lexer->current != '\n')
 		concatenateValueToToken(comment, lexer);
-	} while (lexer->current != '~' && lexer->current != '\n');
 
-	if (lexer->current == '~') {
+	if (lexer->current == '~')
 		concatenateValueToToken(comment, lexer);
-	}
 }
 
 void handleCommentOrString(Lexer *lexer) {
@@ -96,320 +150,38 @@ void handleCommentOrString(Lexer *lexer) {
 	else if (lexer->current == '~')
 		handleComment(lexer);
 
-	if (!isspace(lexer->current)) {
-		//Invoke error since this is noconcat	
+	if (!isspace(lexer->current))
 		SPACE_REQUIRED_ERROR(lexer->cursor.row);
-	}
 }
 
-void handleNumber(Lexer *lexer) {
-	Token *number;
-	
-	if (isdigit(lexer->current))
-		number = createToken(INTEGER, lexer);
-	else
-		number = createToken(DECIMAL, lexer);
-	
-	while (isdigit(lexer->current) || lexer->current == '.') {
-		DEBUG_MSG("Appending %c...", lexer->current);
-		if (isdigit(lexer->current)) {
-			concatenateValueToToken(number, lexer);
-		} else if (lexer->current == '.' || number->type == INTEGER) {
-			concatenateValueToToken(number, lexer);
-			number->type = DECIMAL;
-		} else if (lexer->current == '.' || number->type == DECIMAL) {
-			MULTIPLE_PERIOD_ERROR(lexer->cursor.row);
-			//Invoke error, double decimal point
-		}
-		
-		if (isalpha(lexer->current)) {
-			NUMBER_PLUS_LETTER_ERROR(lexer->current, lexer->cursor.row);
-		}
-	}
-	
-	if (number->length == 1 && number->type == DECIMAL) {
-		PERIOD_ONLY_NUMBER_ERROR(lexer->cursor.row);
-	}
+void handleNewline(Lexer *lexer) {
+	Token *newline_token = createToken(SENTENCE_BREAK, lexer);
+	lexer->indent = true;
+	return;
 }
 
-void handleWord(Lexer *lexer) {
-	Token *word = createToken(IDENTIFIER, lexer);
+void handleIndention(Lexer *lexer) {
+	Token *indent_token = createToken(INDENTION, lexer);
 
-	//First check for reserved word
-	if (islower(lexer->current) || lexer->current == '_')
-		goto skip;
+	while(lexer->current == ' ' || lexer->current == '\t')
+		concatenateValueToToken(indent_token, lexer);
 
-	else if (lexer->current == 'A') {
-		if (lexer->current != 'S')
-			goto skip;
-
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD;		//AS
-	} else if (lexer->current == 'B') {
-		if (lexer->current == 'Y') {
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//BY
-			goto skip;
-		}
-
-		if (lexer->current != 'O') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'O') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'L') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'E') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		
-		if (lexer->current != 'A') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'N') goto skip;
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD;	//BOOLEAN
-	} else if (lexer->current == 'D') {
-		if (lexer->current == 'O') {
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//DO
-			goto skip;
-		}
-			
-		if (lexer->current != 'E') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'C') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'I') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'M') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'A') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'L') goto skip;
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD;	//DECIMAL
-	} else if (lexer->current == 'E') {
-		if (lexer->current != 'L') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'S') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'E') goto skip;
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD;	//ELSE
-	} else if (lexer->current == 'F') {
-		if (lexer->current == 'A') {
-			concatenateValueToToken(word, lexer);
-		
-			if (lexer->current != 'L') goto skip;
-			concatenateValueToToken(word, lexer);
-		
-			if (lexer->current != 'S') goto skip;
-			concatenateValueToToken(word, lexer);
-		
-			if (lexer->current != 'E') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//FALSE
-		} else if (lexer->current == 'O') {
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'R') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//FOR
-		}
-	} else if (lexer->current == 'I') {
-		if (lexer->current == 'F') {
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//IF
-			goto skip;
-		}
-
-		if (lexer->current != 'N') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current == 'P') {
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'U') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'T')
-				goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD; //INPUT
-		} else if (lexer->current == 'T') {
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'E') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'G') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'E') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'R') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD; //INTEGER
-		} else {
-			goto skip;
-		}
-	} else if (lexer->current == 'O') {
-		concatenateValueToToken(word, lexer);
-		if (lexer->current != 'U') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'T') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		if (lexer->current != 'P') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		if (lexer->current != 'U') goto skip;
-		concatenateValueToToken(word, lexer);
-		
-		if (lexer->current != 'T') goto skip;
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD;	//OUTPUT
-	} else if (lexer->current == 'S') {
-		if (lexer->current == 'E') {
-			concatenateValueToToken(word, lexer);
-			
-			if (lexer->current != 'T') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//SET
-		} else if (lexer->current == 'T') {
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'R') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'I') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'N') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'G') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD; //STRING
-		} else {
-			goto skip;
-		}
-	} else if (lexer->current == 'T') {
-		if (lexer->current == 'H') {
-			concatenateValueToToken(word, lexer);
-			
-			if (lexer->current != 'E') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'N') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//THEN
-		} else if (lexer->current == 'O') {
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD;	//TO
-			goto skip;
-		} else if (lexer->current == 'R') {
-			concatenateValueToToken(word, lexer);
-			
-			if (lexer->current != 'U') goto skip;
-			concatenateValueToToken(word, lexer);
-
-			if (lexer->current != 'E') goto skip;
-			concatenateValueToToken(word, lexer);
-			word->type = RESERVED_WORD; //TRUE
-		} else {
-			goto skip;
-		}
-	} else if (lexer->current == 'W') {
-		if (lexer->current != 'H') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		if (lexer->current != 'I') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		if (lexer->current != 'L') goto skip;
-		concatenateValueToToken(word, lexer);
-
-		if (lexer->current != 'E') goto skip;
-		concatenateValueToToken(word, lexer);
-		word->type = RESERVED_WORD; //WHILE
-	} else {
-		goto skip;
-	}
-
-	skip:
-	//Second check
-	if (!isalnum(lexer->current) && lexer->current != '_') {
-		return;
-	}
-
-	//identifiers: may fail first check but must fail the second check
-	word->type = IDENTIFIER;
-
-	while (isalnum(lexer->current) || lexer->current == '_') {
-		DEBUG_MSG("Appending %c to token...", lexer->current);
-		concatenateValueToToken(word, lexer);
-	}
-
-}
-
-void handleSymbol(Lexer *lexer) {
-	Trie *next = nextTrie(lexer->trie, lexer->current);
-	
-	if (next == NULL)
-		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
-
-	Token *symbol = createToken(next->type, lexer);
-	
-	if ((next = nextTrie(next, lexer->current)) != NULL) {
-		concatenateValueToToken(symbol, lexer);
-		symbol->type = next->type;
-	}
-
-	DEBUG_MSG("Appended a symbol.");	
+	lexer->indent = false;
 }
 
 void handleCharacter(Lexer *lexer) {
-	//Check whether character is invalid
-	if (iscntrl(lexer->current) && !isspace(lexer->current)) {
+	if (iscntrl(lexer->current) && !isspace(lexer->current))
 		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
-	}
 
-	//Start of indention
-	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t')) {
-		Token *indent_token = createToken(INDENT, lexer);
-		DEBUG_MSG("Indent Mode.");
+	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t'))
+		handleIndention(lexer);
 
-		//Succeeding indentions
-		while (lexer->current == ' ' || lexer->current == '\t') {
-			concatenateValueToToken(indent_token, lexer);
-			//Add 1 to last->length
-		}
+	lexer->indent = false;	
+	if (lexer->current == ' ' || lexer->current == '\t')
+		moveCursor(lexer, false);	//Ignoring whitespace
 
-		DEBUG_MSG("Indent Mode end.\n");
-	} else if (lexer->current == ' ' || lexer->current == '\t') {
-		moveCursor(lexer, false);
-		DEBUG_MSG("Whitespace encountered.");
-	}
-
-	lexer->indent = false;
-	if (lexer->current == '\n' || lexer->current == EOF) {
-		Token *newline_token = createToken(SENTENCE_BREAK, lexer);
-		DEBUG_MSG("Appended a sentence break token.");
-		return;
-	}
+	if (lexer->current == '\n' || lexer->current == EOF)
+		handleNewline(lexer);
 
 	if (lexer->current == '\"' || lexer->current == '~')
 		handleCommentOrString(lexer);
@@ -426,26 +198,31 @@ void handleCharacter(Lexer *lexer) {
 
 void printTokens(Lexer *lexer) {
 	if (!interpreter->debugging) return;
+	
 	FILE *debug_file = fopen(".lexer_debug.txt", "w+");
 	DEBUG_FILE_CHECK(debug_file);
-	// Test file creation
 
-	printf("ROW\tCOL\t%-20s\tLENGTH\n", "VALUE");
-	fprintf(debug_file, "ROW\tCOL\t%-20s\tLENGTH\n", "VALUE");
+	printf("ROW\tCOLUMN\tLENGTH\t%-16s VALUE\n", "TYPE");
+	fprintf(debug_file, "ROW\tCOLUMN\tLENGTH\t%-16s VALUE\n", "TYPE");
 	for (Token *current = lexer->symtable; current != NULL; current = current->next) {
 		fseek(lexer->file, current->location.offset, SEEK_SET);
 		char value[current->length+1];
 		fread(value, current->length, 1, lexer->file);
 		value[current->length] = '\0';
+
+		Position location = current->location;
+		char *token_type = TokenTypeStr[current->type];
+		size_t length = current->length;
+
 		if (*value == '\n') {
-			printf("%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, "\\n", current->length);
-			fprintf(debug_file, "%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, "\\n", current->length);
+			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
+			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
 		} else if (*value == EOF) {
-			printf("%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, "EOF", current->length);
-			fprintf(debug_file, "%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, "EOF", current->length);
+			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "EOF");
+			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "EOF");
 		} else {
-			printf("%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, value, current->length);
-			fprintf(debug_file, "%d\t%d\t%-20s\t%ld\n", current->location.row, current->location.column, value, current->length);
+			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);
+			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);
 		}
 	}
 
@@ -458,15 +235,15 @@ Token *tokenize(FILE *input_file) {
 	lexer.file = input_file;
 	lexer.current = fgetc(lexer.file);
 	lexer.symtable = lexer.last = NULL;
-	lexer.cursor.row = 1;	// 1-based, offset is 0-based
-	lexer.cursor.column = 1;
-	lexer.cursor.offset = 0;
+	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
 	lexer.trie = generateTrie();
 
 	while (!feof(lexer.file)) {
-		DEBUG_MSG("%c\t%d", lexer.current, lexer.cursor.column);
 		handleCharacter(&lexer);
 	}
+
+	if (lexer.last->type != SENTENCE_BREAK)
+		createToken(SENTENCE_BREAK, &lexer);
 
 	DEBUG_MSG("Successfully created symtable.");
 	
@@ -479,6 +256,5 @@ void freeSymTable(Token *token) {
 	if (token == NULL) return;
 
 	freeSymTable(token->next);
-	DEBUG_MSG("Freeing tokens...");
 	free(token);
 }

@@ -9,7 +9,6 @@ Trie *createTrieNode(void) {
 
 void insertWord(Trie *root, const char *word, TokenType type) {
 	Trie *current = root;
-	printf("DEBUG: Inserting %s to trie...\n", word);
 
 	for (unsigned int i = 0; i < strlen(word); ++i) {
 		if (!current->children[word[i]])
@@ -18,7 +17,6 @@ void insertWord(Trie *root, const char *word, TokenType type) {
 		current = current->children[word[i]];
 	}
 
-	//Note: (type = 0) != SENTENCE_BREAK for this specific context!
 	current->type = type;
 }
 

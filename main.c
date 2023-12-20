@@ -9,8 +9,8 @@ void printHelp(void) {
 	printf("usage: ./yassou [-h] [-d] FILE\n\n");
 	printf("Yassou language interpreter.\n\n");
 	printf("positional argument:\n  %-6s .yass file to process\n\n", "FILE");
-	printf("options:\n  %-6s show this help message and exit\n", "-d");
-	printf("  %-6s enable debugging\n", "-h");
+	printf("options:\n  %-6s show this help message and exit\n", "-h");
+	printf("  %-6s enable debugging\n", "-d");
 }
 
 void freeInterpreter(Interpreter *interpreter) {
@@ -57,7 +57,7 @@ bool isSameFileExt(const char *file, const char *target_ext) {
 void parseArguments(Interpreter *interpreter, int argc, char **argv) {
 	if (argc == 1) {
 		printHelp();
-		NO_FILE_ERROR;
+		exit(0);
 	}
 
 	interpreter->debugging = false;
@@ -72,7 +72,10 @@ void parseArguments(Interpreter *interpreter, int argc, char **argv) {
 	}
 
 	if (interpreter->file_name == NULL)
+	{
+		printHelp();
 		NO_FILE_ERROR;
+	}
 
 	if (isSameFileExt(interpreter->file_name, EXT))
 		WRONG_FILE_EXT_ERROR(interpreter->file_name);

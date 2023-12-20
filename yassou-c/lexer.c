@@ -1,9 +1,8 @@
 #include "lexer.h"
 
 void moveCursor(Lexer *lexer, bool next_line) {
-	if (feof(lexer->file)) {
+	if (feof(lexer->file))
 		return;
-	}
 	
 	lexer->current = fgetc(lexer->file);
 	if (next_line) {
@@ -57,7 +56,7 @@ void handleSymbol(Lexer *lexer) {
 
 	Token *symbol = createToken(next->type, lexer);
 	
-	if ((next = nextTrie(next, lexer->current)) != NULL) {
+	if (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
 		concatenateValueToToken(symbol, lexer);
 		symbol->type = next->type;
 	}
@@ -69,7 +68,7 @@ void handleWord(Lexer *lexer) {
 
 	if (next != NULL) {
 		word = createToken(IDENTIFIER, lexer);
-		while ((next = nextTrie(next, lexer->current)) != NULL) {
+		while (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
 			concatenateValueToToken(word, lexer);
 			word->type = next->type;
 		}
@@ -125,7 +124,7 @@ void handleString(Lexer *lexer) {
 	while (lexer->current != '\"') {
 		concatenateValueToToken(string, lexer);
 
-		if (lexer->current == '\n' || !feof(lexer->file)) {
+		if (lexer->current == '\n' || feof(lexer->file)) {
 			STRING_ERROR(lexer->cursor.row);
 		}
 		if (lexer->current == '\\') {
@@ -153,7 +152,7 @@ void handleCommentOrString(Lexer *lexer) {
 	else if (lexer->current == '~')
 		handleComment(lexer);
 
-	if (!isspace(lexer->current) && lexer->current != EOF)
+	if (!isspace(lexer->current) && !feof(lexer->file))
 		SPACE_REQUIRED_ERROR(lexer->cursor.row);
 }
 
@@ -179,7 +178,7 @@ void handleCharacter(Lexer *lexer) {
 	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t'))
 		handleIndention(lexer);
 
-	if (lexer->current == '\n' || lexer->current == EOF) {
+	if (lexer->current == '\n') {
 		handleNewline(lexer);
 		return;
 	}
@@ -191,7 +190,7 @@ void handleCharacter(Lexer *lexer) {
 	if (lexer->current == '\"' || lexer->current == '~')
 		handleCommentOrString(lexer);
 
-	if (isdigit(lexer->current) || lexer->current == '.')
+	else if (isdigit(lexer->current) || lexer->current == '.')
 		handleNumber(lexer);	// Integers and decimals
 
 	else if (isalpha(lexer->current) || lexer->current == '_')
@@ -211,6 +210,7 @@ void printTokens(Lexer *lexer) {
 	fprintf(debug_file, "ROW\tCOLUMN\tLENGTH\t%-16s VALUE\n", "TYPE");
 	for (Token *current = lexer->symtable; current != NULL; current = current->next) {
 		fseek(lexer->file, current->location.offset, SEEK_SET);
+		
 		char value[current->length+1];
 		fread(value, current->length, 1, lexer->file);
 		value[current->length] = '\0';
@@ -220,11 +220,15 @@ void printTokens(Lexer *lexer) {
 		size_t length = current->length;
 
 		if (*value == '\n' || current->next == NULL) {
-			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
-			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, "\\n");
+			printf("%d\t%d\t%ld\t%-16s %s\n",
+					location.row, location.column, length, token_type, "\\n");
+			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n",
+					location.row, location.column, length, token_type, "\\n");
 		} else {
-			printf("%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);
-			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n", location.row, location.column, length, token_type, value);
+			printf("%d\t%d\t%ld\t%-16s %s\n",
+					location.row, location.column, length, token_type, value);
+			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n",
+					location.row, location.column, length, token_type, value);
 		}
 	}
 

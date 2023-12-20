@@ -247,8 +247,8 @@ Token *tokenize(FILE *input_file) {
 	while (!feof(lexer.file)) {
 		handleCharacter(&lexer);
 	}
-
-	createToken(SENTENCE_BREAK, &lexer);
+	if (lexer.symtable == NULL) return;
+	else if (lexer.last->type != SENTENCE_BREAK) createToken(SENTENCE_BREAK, &lexer);
 
 	DEBUG_MSG("Successfully created symtable.");
 	

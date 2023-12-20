@@ -206,8 +206,8 @@ void printTokens(Lexer *lexer) {
 	FILE *debug_file = fopen(".lexer_debug.txt", "w+");
 	DEBUG_FILE_CHECK(debug_file);
 
-	printf("ROW\tCOLUMN\tLENGTH\t%-16s VALUE\n", "TYPE");
-	fprintf(debug_file, "ROW\tCOLUMN\tLENGTH\t%-16s VALUE\n", "TYPE");
+	printf("ROW\tCOL\tLEN\t%-16s VALUE\n", "TYPE");
+	fprintf(debug_file, "ROW\tCOL\tLEN\t%-16s VALUE\n", "TYPE");
 	for (Token *current = lexer->symtable; current != NULL; current = current->next) {
 		fseek(lexer->file, current->location.offset, SEEK_SET);
 		
@@ -248,8 +248,7 @@ Token *tokenize(FILE *input_file) {
 		handleCharacter(&lexer);
 	}
 
-	if (lexer.last->type != SENTENCE_BREAK)
-		createToken(SENTENCE_BREAK, &lexer);
+	createToken(SENTENCE_BREAK, &lexer);
 
 	DEBUG_MSG("Successfully created symtable.");
 	

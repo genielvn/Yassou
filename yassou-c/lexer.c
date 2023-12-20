@@ -125,7 +125,7 @@ void handleString(Lexer *lexer) {
 	while (lexer->current != '\"') {
 		concatenateValueToToken(string, lexer);
 
-		if (lexer->current == '\n') {
+		if (lexer->current == '\n' || !feof(lexer->file)) {
 			STRING_ERROR(lexer->cursor.row);
 		}
 		if (lexer->current == '\\') {
@@ -140,7 +140,7 @@ void handleString(Lexer *lexer) {
 void handleComment(Lexer *lexer) {
 	Token *comment = createToken(COMMENT, lexer);
 
-	while (lexer->current != '~' && lexer->current != '\n')
+	while (lexer->current != '~' && lexer->current != '\n' && !feof(lexer->file))
 		concatenateValueToToken(comment, lexer);
 
 	if (lexer->current == '~')

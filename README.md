@@ -2,14 +2,14 @@
 Yassou is a beginner-friendly, general-purpose programming language coined after the Greek word meaning "Hello." This language is simple and easy to understand as it uses natural syntax for better readability and writability. It serves as the bridge between pseudocode and other general-purpose programming languages, which helps programmers and readers simulate the logic of the code to spot errors and inconsistencies before the actual programming process.  
 
 ## Developing
-Compile the Yassou Interpreter using the Makefile first.
-```
-make
-```
+Compile the Yassou Interpreter using the `Makefile` first.
+
+If you are running Windows and have gcc on your machine without make, run `compile.bat` instead.
 
 To run a (.yass) file:
 ```
-./yassou [FILE] [-d]
+./yassou [FILE] [-d] 
+./yassou.exe [FILE] [-d]
 ```
 
 ## Checklist

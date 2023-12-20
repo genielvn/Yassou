@@ -1,5 +1,5 @@
-#include "global.h"
-#include "lexer.h"
+#include "src/global.h"
+#include "src/lexer.h"
 
 #define EXT ".yass"
 

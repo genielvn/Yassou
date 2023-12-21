@@ -28,7 +28,7 @@ Trie *generateTrie(void) {
 	Trie *root = createTrieNode();
 
 	for (unsigned int i = 0; i < 18; ++i)
-		insertWord(root, RESERVED_WORDS[i], RESERVED_WORD);
+		insertWord(root, RESERVED_WORDS[i], i+28 );
 
 	for (unsigned int i = 0; i < 20; ++i)
 		insertWord(root, SYMBOLS[i],  i+2);

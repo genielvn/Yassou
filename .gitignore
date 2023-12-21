@@ -1,6 +1,6 @@
 **/__pycache__/
 .lexer_debug.txt
-yassou-c/test.yass
-yassou-c/yassou
-yassou-c/yassou.exe
-yassou-c/lexer.c.bak
+test.yass
+yassou
+yassou.exe
+lexer.c.bak

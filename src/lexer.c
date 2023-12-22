@@ -163,7 +163,7 @@ void handleNewline(Lexer *lexer) {
 }
 
 void handleIndention(Lexer *lexer) {
-	Token *indent_token = createToken(INDENTION, lexer);
+	Token *indent_token = createToken(INDENT, lexer);
 
 	while(lexer->current == ' ' || lexer->current == '\t')
 		concatenateValueToToken(indent_token, lexer);

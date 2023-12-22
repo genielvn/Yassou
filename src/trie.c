@@ -28,10 +28,10 @@ Trie *generateTrie(void) {
 	Trie *root = createTrieNode();
 
 	for (unsigned int i = 0; i < 18; ++i)
-		insertWord(root, RESERVED_WORDS[i], i+28 );
+		insertWord(root, RESERVED_WORDS[i], i+29 );
 
 	for (unsigned int i = 0; i < 20; ++i)
-		insertWord(root, SYMBOLS[i],  i+2);
+		insertWord(root, SYMBOLS[i],  i+3);
 
 	return root;
 }

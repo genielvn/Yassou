@@ -11,7 +11,8 @@
 
 typedef enum TokenType {
 	SENTENCE_BREAK,		// NEWLINE
-	INDENTION,
+	INDENT,
+	DEDENT,
 
 	COMMA,				// ,
 	EXPR_BEGIN,			// (
@@ -72,8 +73,8 @@ typedef enum TokenType {
 
 } TokenType;
 
-static char TokenTypeStr[46][20] = {
-	"SENTENCE_BREAK", "INDENTION", "COMMA", "EXPR_BEGIN",
+static char TokenTypeStr[47][20] = {
+	"SENTENCE_BREAK", "INDENT", "DEDENT", "COMMA", "EXPR_BEGIN",
 	"EXPR_TERMINATE", "PLUS", "MINUS", "MULTIPLY",
 	"MODULO", "RAISE", "OR", "AND", "DIVIDE",
 	"ASSIGNMENT", "LESS_THAN", "GREATER_THAN", "NOT",

@@ -173,7 +173,6 @@ void handleIndention(Lexer *lexer) {
 		moveCursor(lexer, false);
 	}
 
-	DEBUG_MSG("%d - %d", indentPeek(&lexer->indent_stack), indents);
 	if (indentPeek(&lexer->indent_stack) < indents)
 	{
 		indentPush(&lexer->indent_stack, indents);

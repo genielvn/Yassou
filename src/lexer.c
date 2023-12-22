@@ -27,7 +27,7 @@ void appendToken(Token *token, Lexer *lexer) {
 	lexer->last = token;
 }
 
-Token *createToken(TokenType type, Lexer *lexer) {
+Token *createToken(TokenType type, Lexer *lexer, bool move) {
 	Token *token = (Token*)calloc(1, sizeof(Token));
 	MEMCHECK;
 
@@ -37,7 +37,9 @@ Token *createToken(TokenType type, Lexer *lexer) {
 	token->location.offset = lexer->cursor.offset;
 	token->length = 1;
 
-	moveCursor(lexer, (token->type == SENTENCE_BREAK));
+	if (move)
+		moveCursor(lexer, (token->type == SENTENCE_BREAK));
+
 	appendToken(token, lexer);
 
 	return token;
@@ -54,7 +56,7 @@ void handleSymbol(Lexer *lexer) {
 	if (next == NULL)
 		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
 
-	Token *symbol = createToken(next->type, lexer);
+	Token *symbol = createToken(next->type, lexer, true);
 	
 	if (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
 		concatenateValueToToken(symbol, lexer);
@@ -67,7 +69,7 @@ void handleWord(Lexer *lexer) {
 	Token *word;
 
 	if (next != NULL) {
-		word = createToken(IDENTIFIER, lexer);
+		word = createToken(IDENTIFIER, lexer, true);
 		while (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
 			concatenateValueToToken(word, lexer);
 			word->type = next->type;
@@ -76,7 +78,7 @@ void handleWord(Lexer *lexer) {
 		if (word->type == 0)
 			word->type = IDENTIFIER;
 	} else {
-		word = createToken(IDENTIFIER, lexer);
+		word = createToken(IDENTIFIER, lexer, true);
 	}
 
 	if (!isalnum(lexer->current) && lexer->current != '_')
@@ -91,9 +93,9 @@ void handleNumber(Lexer *lexer) {
 	Token *number;
 	
 	if (isdigit(lexer->current))
-		number = createToken(INTEGER, lexer);
+		number = createToken(INTEGER, lexer, true);
 	else
-		number = createToken(DECIMAL, lexer);
+		number = createToken(DECIMAL, lexer, true);
 	
 	while (isdigit(lexer->current) || lexer->current == '.') {
 		if (isdigit(lexer->current)) {
@@ -113,14 +115,14 @@ void handleNumber(Lexer *lexer) {
 }
 
 void handleString(Lexer *lexer) {
-	Token *delim1 = createToken(STR_DELIMITER, lexer);
+	Token *delim1 = createToken(STR_DELIMITER, lexer, true);
 	
 	if (lexer->current == '\"') {
-		Token *delim2 = createToken(STR_DELIMITER, lexer);
+		Token *delim2 = createToken(STR_DELIMITER, lexer, true);
 		return;
 	}
 	
-	Token *string = createToken(STRING, lexer);
+	Token *string = createToken(STRING, lexer, true);
 	while (lexer->current != '\"') {
 		concatenateValueToToken(string, lexer);
 
@@ -133,11 +135,11 @@ void handleString(Lexer *lexer) {
 		}
 	}
 	
-	Token *delim2 = createToken(STR_DELIMITER, lexer);
+	Token *delim2 = createToken(STR_DELIMITER, lexer, true);
 }
 
 void handleComment(Lexer *lexer) {
-	Token *comment = createToken(COMMENT, lexer);
+	Token *comment = createToken(COMMENT, lexer, true);
 
 	while (lexer->current != '~' && lexer->current != '\n' && !feof(lexer->file))
 		concatenateValueToToken(comment, lexer);
@@ -157,26 +159,52 @@ void handleCommentOrString(Lexer *lexer) {
 }
 
 void handleNewline(Lexer *lexer) {
-	Token *newline_token = createToken(SENTENCE_BREAK, lexer);
+	Token *newline_token = createToken(SENTENCE_BREAK, lexer, true);
 	lexer->indent = true;
 	return;
 }
 
 void handleIndention(Lexer *lexer) {
-	Token *indent_token = createToken(INDENT, lexer);
-
+	int indents = 0;
+	
 	while(lexer->current == ' ' || lexer->current == '\t')
-		concatenateValueToToken(indent_token, lexer);
+	{
+		indents++;
+		moveCursor(lexer, false);
+	}
+
+	DEBUG_MSG("%d - %d", indentPeek(&lexer->indent_stack), indents);
+	if (indentPeek(&lexer->indent_stack) < indents)
+	{
+		indentPush(&lexer->indent_stack, indents);
+		Token *indent_token = createToken(INDENT, lexer, false);
+		indent_token->length = 0;
+
+	}
+	else if (indentPeek(&lexer->indent_stack) > indents)
+	{
+		while (indentPeek(&lexer->indent_stack) > indents)
+		{
+			indentPop(&lexer->indent_stack);
+			Token *indent_token = createToken(DEDENT, lexer, false);
+			indent_token->length = 0;
+			if (indentPeek(&lexer->indent_stack) < indents)
+			{
+				INDENTATION_ERROR(lexer->cursor.row);
+			}
+		}
+	}
+
 
 	lexer->indent = false;
 }
 
 void handleCharacter(Lexer *lexer) {
+	if (lexer->indent)
+		handleIndention(lexer);
+
 	if (iscntrl(lexer->current) && !isspace(lexer->current))
 		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
-
-	if (lexer->indent && (lexer->current == ' ' || lexer->current == '\t'))
-		handleIndention(lexer);
 
 	if (lexer->current == '\n') {
 		handleNewline(lexer);
@@ -236,6 +264,27 @@ void printTokens(Lexer *lexer) {
 	fclose(debug_file);
 }
 
+void initialize_IndentStack(IndentStack *stack)
+{
+	stack->top = -1;
+}
+
+int indentPeek(IndentStack *stack)
+{
+	if (stack->top == -1) return 0;
+	return stack->indent[stack->top];
+}
+
+int indentPop(IndentStack *stack)
+{
+	return stack->indent[stack->top--];
+}
+
+void indentPush(IndentStack *stack, int indent)
+{
+	stack->indent[++stack->top] = indent;
+}
+
 Token *tokenize(FILE *input_file) {
 	Lexer lexer;
 	lexer.file = input_file;
@@ -243,12 +292,13 @@ Token *tokenize(FILE *input_file) {
 	lexer.symtable = lexer.last = NULL;
 	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
 	lexer.trie = generateTrie();
+	initialize_IndentStack(&lexer.indent_stack);
 
 	while (!feof(lexer.file)) {
 		handleCharacter(&lexer);
 	}
 	if (lexer.symtable == NULL) return;
-	else if (lexer.last->type != SENTENCE_BREAK) createToken(SENTENCE_BREAK, &lexer);
+	else if (lexer.last->type != SENTENCE_BREAK) createToken(SENTENCE_BREAK, &lexer, true);
 
 	DEBUG_MSG("Successfully created symtable.");
 	

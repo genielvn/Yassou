@@ -79,4 +79,9 @@
 		INVOKE_ERROR("String token is terminated unexpectedly. (line %d)", line); \
 	} while (0);
 
+#define INDENTATION_ERROR(line) \
+	do { \
+		INVOKE_ERROR("Incorrect alignment on indentation. (line %d)", line); \
+	} while (0);
+
 #endif

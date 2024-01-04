@@ -4,15 +4,15 @@
 #include <limits.h>
 #include "global.h"
 
-typedef struct Trie {
-    struct Trie *children[CHAR_MAX+1];
+typedef struct State {
+    struct State *children[CHAR_MAX+1];
     TokenType type;
-} Trie;
+} State;
 
-Trie *nextTrie(Trie *node, const char ch);
+State *nextState(State *node, const char ch);
 
-Trie *generateTrie(void);
+State *generateAutomata(void);
 
-void freeTrie(Trie *token);
+void freeAutomata(State *token);
 
 #endif

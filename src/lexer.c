@@ -51,26 +51,26 @@ void concatenateValueToToken(Token *token, Lexer *lexer) {
 }
 
 void handleSymbol(Lexer *lexer) {
-	Trie *next = nextTrie(lexer->trie, lexer->current);
+	State *next = nextState(lexer->trie, lexer->current);
 	
 	if (next == NULL)
 		UNKNOWN_CHARACTER_ERROR(lexer->current, lexer->cursor.row);
 
 	Token *symbol = createToken(next->type, lexer, true);
 	
-	if (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
+	if (!feof(lexer->file) && (next = nextState(next, lexer->current)) != NULL) {
 		concatenateValueToToken(symbol, lexer);
 		symbol->type = next->type;
 	}
 }
 
 void handleWord(Lexer *lexer) {
-	Trie *next = nextTrie(lexer->trie, lexer->current);
+	State *next = nextState(lexer->trie, lexer->current);
 	Token *word;
 
 	if (next != NULL) {
 		word = createToken(IDENTIFIER, lexer, true);
-		while (!feof(lexer->file) && (next = nextTrie(next, lexer->current)) != NULL) {
+		while (!feof(lexer->file) && (next = nextState(next, lexer->current)) != NULL) {
 			concatenateValueToToken(word, lexer);
 			word->type = next->type;
 		}
@@ -290,7 +290,7 @@ Token *tokenize(FILE *input_file) {
 	lexer.current = fgetc(lexer.file);
 	lexer.symtable = lexer.last = NULL;
 	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
-	lexer.trie = generateTrie();
+	lexer.trie = generateAutomata();
 	initialize_IndentStack(&lexer.indent_stack);
 
 	while (!feof(lexer.file)) {
@@ -302,7 +302,7 @@ Token *tokenize(FILE *input_file) {
 	DEBUG_MSG("Successfully created symtable.");
 	
 	printTokens(&lexer);
-	freeTrie(lexer.trie);
+	freeAutomata(lexer.trie);
 	return lexer.symtable;
 }
 

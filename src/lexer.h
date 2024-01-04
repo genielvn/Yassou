@@ -18,7 +18,7 @@ typedef struct Lexer {
 	Token *symtable, *last;
 	bool indent;
 	IndentStack indent_stack;
-	Trie *trie;
+	State *trie;
 } Lexer;
 
 Token *tokenize(FILE *input_file);

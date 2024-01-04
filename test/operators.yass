@@ -9,3 +9,10 @@ SET and_true = nope & yes
 
 SET math AS INTEGER
 SET math = (1 + 2) * 3 ^ 8
+
+IF 10 < 20
+    OUTPUT "10 is less than 20"
+ELSE IF 10 > 20
+    OUTPUT "10 is greater than 20"
+ELSE IF 10 == 20    
+    OUTPUT "10 is equal to 20"

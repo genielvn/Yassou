@@ -173,27 +173,34 @@ void handleIndention(Lexer *lexer) {
 		moveCursor(lexer, false);
 	}
 
-	if (indentPeek(&lexer->indent_stack) < indents)
+	if (lexer->indent_stack == NULL)
+	{
+		DEBUG_MSG("Indent Stack is NULL");
+	}
+
+
+	int last_indent = indentPeek(&lexer->indent_stack);
+	DEBUG_MSG("%d < %d?", last_indent, indents);
+	if (last_indent < indents)
 	{
 		indentPush(&lexer->indent_stack, indents);
 		Token *indent_token = createToken(INDENT, lexer, false);
 		indent_token->length = 0;
-
 	}
-	else if (indentPeek(&lexer->indent_stack) > indents)
+	else if (last_indent > indents)
 	{
-		while (indentPeek(&lexer->indent_stack) > indents)
+		while (last_indent > indents)
 		{
-			indentPop(&lexer->indent_stack);
-			Token *indent_token = createToken(DEDENT, lexer, false);
-			indent_token->length = 0;
-			if (indentPeek(&lexer->indent_stack) < indents)
+			if (last_indent < indents)
 			{
 				INDENTATION_ERROR(lexer->cursor.row);
 			}
+			indentPop(&lexer->indent_stack);
+			Token *indent_token = createToken(DEDENT, lexer, false);
+			indent_token->length = 0;
+			last_indent = indentPeek(&lexer->indent_stack);
 		}
 	}
-
 
 	lexer->indent = false;
 }
@@ -263,26 +270,61 @@ void printTokens(Lexer *lexer) {
 	fclose(debug_file);
 }
 
-void initialize_IndentStack(IndentStack *stack)
+int indentPeek(IndentNode **stack)
 {
-	stack->top = -1;
+	if (*stack == NULL) 
+	{	
+		DEBUG_MSG("Empty Stack.");
+		return 0;
+	}
+	// DEBUG_MSG("IndentStack has peeked: %d", stack->data);
+	return (*stack)->data;
 }
 
-int indentPeek(IndentStack *stack)
+int indentPop(IndentNode **stack)
 {
-	if (stack->top == -1) return 0;
-	return stack->indent[stack->top];
+	IndentNode *temp = *stack;
+	if ((*stack) == NULL)
+	{
+		DEBUG_MSG("STACK UNDERFLOW!");
+		return 0;
+	}
+	else
+	{
+		*stack = (*stack)->next;
+	}
+	int num = temp->data;
+	DEBUG_MSG("IndentStack has popped: %d", num);
+
+	free(temp);
+	return num;
 }
 
-int indentPop(IndentStack *stack)
+void indentPush(IndentNode **stack, int indent)
 {
-	return stack->indent[stack->top--];
+	DEBUG_MSG("IndentStack has pushed: %d", indent);
+	IndentNode *next_node = (IndentNode*)malloc(sizeof(IndentNode));
+	MEMCHECK;
+	next_node->data = indent;
+	next_node->next = *stack;	
+	*stack = next_node;
 }
 
-void indentPush(IndentStack *stack, int indent)
+void displayStack(IndentNode *stack)
 {
-	stack->indent[++stack->top] = indent;
+	IndentNode *node = (IndentNode*)malloc(sizeof(IndentNode));
+	node = stack;
+	while (node != NULL)
+	{
+		DEBUG_MSG("%d", node->data);
+		node = node->next;
+	}
 }
+
+// void initializeIndentStack(IndentNode *stack)
+// {
+// 	stack = (IndentNode*)malloc(sizeof(IndentNode));
+// }
 
 Token *tokenize(FILE *input_file) {
 	Lexer lexer;
@@ -290,8 +332,13 @@ Token *tokenize(FILE *input_file) {
 	lexer.current = fgetc(lexer.file);
 	lexer.symtable = lexer.last = NULL;
 	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
-	lexer.trie = generateAutomata();
-	initialize_IndentStack(&lexer.indent_stack);
+	lexer.trie = generateTrie();
+	lexer.indent_stack = NULL;
+	if (lexer.indent_stack == NULL)
+	{
+		DEBUG_MSG("Initialized Stack as NULL");
+	}
+	// initializeIndentStack(&lexer.indent_stack);
 
 	while (!feof(lexer.file)) {
 		handleCharacter(&lexer);

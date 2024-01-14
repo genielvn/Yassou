@@ -6,10 +6,10 @@
 #include "global.h"
 #include "trie.h"
 
-typedef struct IndentStack {
-	int indent[100];
-	int top;
-} IndentStack;
+typedef struct IndentNode {
+	int data;
+	struct IndentNode *next;
+} IndentNode;
 
 typedef struct Lexer {
 	FILE *file;

@@ -10,6 +10,7 @@
 #include "error.h"
 
 typedef enum TokenType {
+	INVALID = 0,
 	SENTENCE_BREAK,		// NEWLINE
 	INDENT,
 	DEDENT,
@@ -73,8 +74,8 @@ typedef enum TokenType {
 
 } TokenType;
 
-static char TokenTypeStr[47][20] = {
-	"SENTENCE_BREAK", "INDENT", "DEDENT", "COMMA", "EXPR_BEGIN",
+static char TokenTypeStr[48][20] = {
+	"INVALID", "SENTENCE_BREAK", "INDENT", "DEDENT", "COMMA", "EXPR_BEGIN",
 	"EXPR_TERMINATE", "PLUS", "MINUS", "MULTIPLY",
 	"MODULO", "RAISE", "OR", "AND", "DIVIDE",
 	"ASSIGNMENT", "LESS_THAN", "GREATER_THAN", "NOT",

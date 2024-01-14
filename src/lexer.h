@@ -17,7 +17,7 @@ typedef struct Lexer {
 	Position cursor;
 	Token *symtable, *last;
 	bool indent;
-	IndentStack indent_stack;
+	IndentNode indent_stack;
 	State *trie;
 } Lexer;
 

@@ -1,18 +1,18 @@
 #include "trie.h"
 
-Trie *createTrieNode(void) {
-	Trie *node = (Trie*)calloc(1, sizeof(Trie));
+State *createState(void) {
+	State *state = (State*)calloc(1, sizeof(State));
 	MEMCHECK;
 
-	return node;
+	return state;
 }
 
-void insertWord(Trie *root, const char *word, TokenType type) {
-	Trie *current = root;
+void insertWord(State *root, const char *word, TokenType type) {
+	State *current = root;
 
 	for (unsigned int i = 0; i < strlen(word); ++i) {
 		if (!current->children[word[i]])
-			current->children[word[i]] = createTrieNode();
+			current->children[word[i]] = createState();
 
 		current = current->children[word[i]];
 	}
@@ -20,12 +20,12 @@ void insertWord(Trie *root, const char *word, TokenType type) {
 	current->type = type;
 }
 
-Trie *nextTrie(Trie *node, const char ch) {
-	return node->children[ch];
+State *nextState(State *state, const char ch) {
+	return state->children[ch];
 }
 
-Trie *generateTrie(void) {
-	Trie *root = createTrieNode();
+State *generateAutomata(void) {
+	State *root = createState();
 
 	for (unsigned int i = 0; i < 18; ++i)
 		insertWord(root, RESERVED_WORDS[i], i+29 );
@@ -36,11 +36,11 @@ Trie *generateTrie(void) {
 	return root;
 }
 
-void freeTrie(Trie *token) {
+void freeAutomata(State *token) {
 	if (!token) return;
 	
 	for (unsigned int i = 0; i < CHAR_MAX+1; ++i)
-		freeTrie(token->children[i]);
+		freeAutomata(token->children[i]);
 
 	free(token);
 }

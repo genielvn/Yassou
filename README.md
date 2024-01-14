@@ -70,10 +70,11 @@ To run a (.yass) file:
    - [X] ||
 - [X] Delimiters and Brackets
 - [X] Error Checking
+- [X] Indent and Dedent Checkings
 - [X] Output: text file containing the symbol table
 
 ### Syntactic Analyzer
-
+- [] Implement Bottom-Up Parsing
 ...
 
 ### Semantic Analyzer

@@ -2,6 +2,19 @@
 #include <global.h>
 #include <error.h>
 
+// added your structure here
+ParseNode *generateParseTree(Token *head)
+{
+    ParseNode *parse_tree = NULL;
+
+    while (head != NULL)
+    {
+        
+    }
+
+    return parse_tree;
+}
+
 ParseNode *createNode(TokenType type)
 {
     ParseNode *node = (ParseNode*)malloc(sizeof(ParseNode));

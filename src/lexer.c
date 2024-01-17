@@ -310,17 +310,6 @@ void indentPush(IndentNode **stack, int indent)
 	*stack = next_node;
 }
 
-void displayStack(IndentNode *stack)
-{
-	IndentNode *node = (IndentNode*)malloc(sizeof(IndentNode));
-	node = stack;
-	while (node != NULL)
-	{
-		DEBUG_MSG("%d", node->data);
-		node = node->next;
-	}
-}
-
 // void initializeIndentStack(IndentNode *stack)
 // {
 // 	stack = (IndentNode*)malloc(sizeof(IndentNode));

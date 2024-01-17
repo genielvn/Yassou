@@ -350,6 +350,7 @@ Token *tokenize(FILE *input_file) {
 	
 	printTokens(&lexer);
 	freeAutomata(lexer.trie);
+	DEBUG_MSG("%d", lexer.symtable->type);
 	return lexer.symtable;
 }
 

@@ -28,10 +28,10 @@ State *generateAutomata(void) {
 	State *root = createState();
 
 	for (unsigned int i = 0; i < 18; ++i)
-		insertWord(root, RESERVED_WORDS[i], i+29 );
+		insertWord(root, RESERVED_WORDS[i], i+30);
 
 	for (unsigned int i = 0; i < 20; ++i)
-		insertWord(root, SYMBOLS[i],  i+3);
+		insertWord(root, SYMBOLS[i],  i+4);
 
 	return root;
 }

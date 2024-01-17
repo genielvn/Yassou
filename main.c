@@ -1,5 +1,6 @@
 #include "src/global.h"
 #include "src/lexer.h"
+#include "src/parser.h"
 
 #define EXT ".yass"
 
@@ -90,6 +91,10 @@ int main(int argc, char **argv) {
 	parseArguments(interpreter, argc, argv);
 	DEBUG_MSG("Tokenizing...");
 	interpreter->symtable = tokenize(interpreter->file);
+
+	DEBUG_MSG("%d", interpreter->symtable);	
+	DEBUG_MSG("Parsing...");
+	interpreter->parse_tree = parseTokens(interpreter->symtable); 
 	freeInterpreter(interpreter);
 
 	return EXIT_SUCCESS;

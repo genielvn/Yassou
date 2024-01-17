@@ -121,7 +121,7 @@ typedef struct Token {
 typedef struct Interpreter {
 	bool debugging;					//debugging file and stderr
 	Token *symtable;				//token list
-	ParseNode *root;
+	ParseNode *parse_tree;
 	FILE *file;						//input file (must be .yass)
 	char *file_name;
 } Interpreter;

@@ -61,6 +61,49 @@ ParseNode *generateVarType(Parser *parser) {
 		return generateParseNode(parser, INVALID_SYNTAX, true);
 }
 
+ParseNode *generateExpression(ParseNode *parser)
+{
+	// Expression here
+
+	// at end
+	// else SYNTAX_ERROR
+}
+
+ParseNode *generateString(ParseNode *parser)
+{
+	// !! WE NEED A NEW NAME FOR THIS.
+	ParseNode *string_literal = generateParseNode(parser, STRING_LITERAL, false);
+
+	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
+
+	if (isCurrentToken(parser, STRING))	{
+		addChild(string_literal, generateParseNode(parser, STRING_LITERAL, true));
+	}
+	else {
+		addChild(string_literal, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	if (isCurrentToken(parser, STR_DELIMITER))	{
+		addChild(string_literal, generateParseNode(parser, STR_DEL, true));
+	}
+	else {
+		addChild(string_literal, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	return string_literal;
+}
+
+ParseNode *generateValue(Parser *parser)
+{
+	if (isCurrentToken(parser, STR_DELIMITER))
+		return generateString(parser);
+	else if (isCurrentToken(parser, INTEGER) | isCurrentToken(parser, DECIMAL) | isCurrentToken(parser, IDENTIFIER) |
+			 isCurrentToken(parser, MINUS) | isCurrentToken(parser, NOT) | isCurrentToken(parser, EXPR_BEGIN) | isCurrentToken(parser, NOT))
+		return generateExpression(parser);
+	else
+		return generateParseNode(parser, INVALID_SYNTAX, true);
+}
+
 ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	ParseNode *statement = generateParseNode(parser, DECLARATION_STATEMENT, false);
 	
@@ -96,6 +139,21 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 
 	return statement;
+}
+
+ParseNode *generateOutputStatement(Parser *parser)
+{
+	ParseNode *statement = generateParseNode(parser, OUTPUT_STATEMENT, false);
+
+	addChild(statement, generateParseNode(parser, OUTPUT_RES, true));
+
+	addChild(statement, generateValue(parser));
+
+	if (isCurrentToken(parser, SENTENCE_BREAK))
+		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
+	else
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+
 }
 
 ParseNode *generateStatement(Parser *parser) {

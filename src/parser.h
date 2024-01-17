@@ -1,12 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
-
-typedef struct ParseTree
-{
-    
-} ParseTree;
-
-
+#include <lexer.h>
 
 
 #endif PARSER_H

@@ -121,9 +121,17 @@ typedef struct Token {
 typedef struct Interpreter {
 	bool debugging;					//debugging file and stderr
 	Token *symtable;				//token list
+	ParseNode *root;
 	FILE *file;						//input file (must be .yass)
 	char *file_name;
 } Interpreter;
+
+typedef struct ParseNode
+{
+    TokenType token;
+	struct ParseNode *first_child;
+	struct ParseNode *sibling;
+} ParseNode;
 
 extern Interpreter *interpreter;
 

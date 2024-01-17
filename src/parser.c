@@ -1,6 +1,28 @@
 #include <stdio.h>
+#include <global.h>
+#include <error.h>
 
-void main()
+ParseNode *createNode(TokenType type)
 {
-    printf("Hello World!");
+    ParseNode *node = (ParseNode*)malloc(sizeof(ParseNode));
+    MEMCHECK;
+
+    node->token = type;
+    node->first_child = NULL;
+    node->sibling = NULL;
+
+    return node;
 }
+
+void addChild(ParseNode *root, ParseNode *child)
+{
+    if (root->first_child == NULL) root->first_child = child;
+    else
+    {
+        ParseNode *last_child = root->first_child;
+        while (last_child != NULL) last_child = last_child->sibling;
+
+        last_child->sibling = child;
+    }
+}
+

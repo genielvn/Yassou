@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "../lib/lexer.h"
 
 void moveCursor(Lexer *lexer, bool next_line) {
 	if (feof(lexer->file))

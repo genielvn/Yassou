@@ -1,6 +1,6 @@
-#include "src/global.h"
-#include "src/lexer.h"
-#include "src/parser.h"
+#include "lib/global.h"
+#include "lib/lexer.h"
+#include "lib/parser.h"
 
 #define EXT ".yass"
 

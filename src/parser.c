@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "../lib/parser.h"
 
 ParseNode *generateExpression(Parser *parser, bool is_sub_expr);
 ParseNode *generateStatement(Parser *parser);

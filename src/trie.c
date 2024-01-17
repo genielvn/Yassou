@@ -1,4 +1,4 @@
-#include "trie.h"
+#include "../lib/trie.h"
 
 State *createState(void) {
 	State *state = (State*)calloc(1, sizeof(State));

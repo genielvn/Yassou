@@ -167,6 +167,8 @@ typedef enum Grammar {
 	STRING_RES,
 	DECIMAL_RES,
 	BOOLEAN_RES,
+
+	STRING,
 	
 	TRUE_LIT,
 	FALSE_LIT,
@@ -214,7 +216,7 @@ typedef enum Grammar {
 	//Insert other nonterminals here
 } Grammar;
 
-static char GrammarStr[100][30] = {
+static char GrammarStr[101][30] = {
 	"INVALID_SYNTAX", "SENTENCE_END", "INDENT_DEL",
 	"DEDENT_DEL", "COMMA_DEL", "EXPR_BEGIN_DEL",
 	"EXPR_TERMINATE_DEL", "PLUS_OP", "MINUS_OP",
@@ -228,7 +230,7 @@ static char GrammarStr[100][30] = {
 	"TO_RES", "BY_RES", "DO_RES", "WHILE_RES",
 	"IF_RES", "ELSE_RES", "THEN_RES",
 	"INPUT_RES", "OUTPUT_RES", "INTEGER_RES",
-	"STRING_RES", "DECIMAL_RES", "BOOLEAN_RES",
+	"STRING_RES", "DECIMAL_RES", "BOOLEAN_RES", "STRING"
 	"TRUE_RES", "FALSE_RES", "SET_RES", "AS_RES",
 	"STATEMENTS", "DECLARATION_STATEMENT", "ASSIGN_STATEMENT",
 	"INPUT_STATEMENT", "OUTPUT_STATEMENT", "CONDITIONAL_STATEMENT",

@@ -71,8 +71,7 @@ ParseNode *generateExpression(ParseNode *parser)
 
 ParseNode *generateString(ParseNode *parser)
 {
-	// !! WE NEED A NEW NAME FOR THIS.
-	ParseNode *string_literal = generateParseNode(parser, STRING_LITERAL, false);
+	ParseNode *string_literal = generateParseNode(parser, STRING, false);
 
 	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
 

@@ -332,7 +332,7 @@ Token *tokenize(FILE *input_file) {
 	lexer.current = fgetc(lexer.file);
 	lexer.symtable = lexer.last = NULL;
 	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
-	lexer.trie = generateTrie();
+	lexer.trie = generateAutomata();
 	lexer.indent_stack = NULL;
 	if (lexer.indent_stack == NULL)
 	{

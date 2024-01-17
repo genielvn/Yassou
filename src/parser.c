@@ -153,6 +153,8 @@ ParseNode *generateOutputStatement(Parser *parser)
 	else
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 
+
+	return statement;
 }
 
 ParseNode *generateStatement(Parser *parser) {

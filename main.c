@@ -18,7 +18,6 @@ void freeInterpreter(Interpreter *interpreter) {
 	DEBUG_MSG("Freeing interpreter memory...");
 	free(interpreter->file_name);
 	fclose(interpreter->file);
-	freeSymTable(interpreter->symtable);
 	free(interpreter);
 }
 
@@ -92,7 +91,6 @@ int main(int argc, char **argv) {
 	DEBUG_MSG("Tokenizing...");
 	interpreter->symtable = tokenize(interpreter->file);
 
-	DEBUG_MSG("%d", interpreter->symtable);	
 	DEBUG_MSG("Parsing...");
 	interpreter->parse_tree = parseTokens(interpreter->symtable); 
 	freeInterpreter(interpreter);

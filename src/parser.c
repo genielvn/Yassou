@@ -618,12 +618,12 @@ void recursivePrint(ParseNode *node, size_t level, FILE *file) {
 	if (node == NULL) return;
 
 	for (size_t i = 0; i < level; ++i) {
-		fprintf(file, "   ");
-		printf("   ");
+		fprintf(file, "   │");
+		printf("   │");
 	}
 
-	fprintf(file, "%s\n", GrammarStr[node->grammar]);
-	printf("%s\n", GrammarStr[node->grammar]);
+	fprintf(file, "-%s\n", GrammarStr[node->grammar]);
+	printf("-%s\n", GrammarStr[node->grammar]);
 
 	//if (node->grammar == IDENTIFIER || node->grammar == INTEGER ||
 	//	node->grammar == DECIMAL || node->grammar == STRING_LITERAL) {

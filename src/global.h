@@ -2,7 +2,6 @@
 #define CONST_H
 
 #include <stdio.h>
-#include <stddef.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,7 +10,6 @@
 #include "error.h"
 
 typedef enum TokenType {
-	INVALID = 0,
 	SENTENCE_BREAK,		// NEWLINE
 	INDENT,
 	DEDENT,
@@ -75,24 +73,21 @@ typedef enum TokenType {
 
 } TokenType;
 
-static char TokenTypeStr[48][20] = {
-	"INVALID", "SENTENCE_BREAK", "INDENT",
-	"DEDENT", "COMMA", "EXPR_BEGIN",
-	"EXPR_TERMINATE", "PLUS", "MINUS",
-	"MULTIPLY", "MODULO", "RAISE",
-	"OR", "AND", "DIVIDE", "ASSIGNMENT",
-	"LESS_THAN", "GREATER_THAN", "NOT",
-	"FLOOR_DIVIDE", "EQUALITY", "LT_EQUAL",
-	"GT_EQUAL", "NOT_EQUAL", "STR_DELIMITER",
-	"COMMENT", "STRING", "INTEGER", "DECIMAL", 
-	"IDENTIFIER", "RESERVED_FOR", "RESERVED_TO",
-	"RESERVED_BY", "RESERVED_DO", "RESERVED_WHILE",
+static char TokenTypeStr[47][20] = {
+	"SENTENCE_BREAK", "INDENT", "DEDENT", "COMMA", "EXPR_BEGIN",
+	"EXPR_TERMINATE", "PLUS", "MINUS", "MULTIPLY",
+	"MODULO", "RAISE", "OR", "AND", "DIVIDE",
+	"ASSIGNMENT", "LESS_THAN", "GREATER_THAN", "NOT",
+	"FLOOR_DIVIDE", "EQUALITY", "LT_EQUAL", "GT_EQUAL",
+	"NOT_EQUAL", "STR_DELIMITER", "COMMENT", "STRING",
+	"INTEGER", "DECIMAL", 
+	"IDENTIFIER", 
+	"RESERVED_FOR",	"RESERVED_TO", "RESERVED_BY", "RESERVED_DO", "RESERVED_WHILE",
 	"RESERVED_IF", "RESERVED_ELSE", "RESERVED_THEN",
 	"RESERVED_INPUT", "RESERVED_OUTPUT",
-	"RESERVED_INTEGER",	"RESERVED_STRING",
-	"RESERVED_DECIMAL", "RESERVED_BOOLEAN",
+	"RESERVED_INTEGER",	"RESERVED_STRING", "RESERVED_DECIMAL", "RESERVED_BOOLEAN",
 	"RESERVED_TRUE", "RESERVED_FALSE",
-	"RESERVED_SET", "RESERVED_AS"
+	"RESERVED_SET", "RESERVED_AS",
 
 };
 
@@ -111,128 +106,17 @@ static char SYMBOLS[20][3] = {
 	"<=", ">=", "!="
 };
 
-typedef enum Grammar {
-	INVALID_SYNTAX = 0,
-	SENTENCE_END,		// NEWLINE
-	INDENT_DEL,
-	DEDENT_DEL,
-
-	COMMA_DEL,				// ,
-	EXPR_BEGIN_DEL,			// (
-	EXPR_TERMINATE_DEL,		// )
-	
-	PLUS_OP,				// +
-	MINUS_OP,				// -
-	MULTIPLY_OP,			// *
-	MODULO_OP,				// %
-	RAISE_OP,				// ^
-	OR_OP,					// |
-	AND_OP,				// &
-	
-	DIVIDE_OP,				// /
-	ASSIGNMENT_OP,			// =
-	LESS_THAN_OP,			// <
-	GREATER_THAN_OP,		// >
-	NOT_OP,				// !
-
-	FLOOR_DIVIDE_OP,		// //
-	EQUALITY_OP,			// ==
-	LT_EQUAL_OP,			// <=
-	GT_EQUAL_OP,			// >=
-	NOT_EQUAL_OP,			// !=
-
-	STR_DEL,		// "
-	COMMENT_DEL,			// ~
-	STRING_LITERAL,				// string data excluding ""
-	
-	INTEGER_LITERAL,			// [0-9]+
-	DECIMAL_LITERAL,				// ([0-9])*.[0-9]+
-
-	IDENTIFIER_VAR,
-
-	FOR_RES,
-	TO_RES,
-	BY_RES,
-	DO_RES,
-	WHILE_RES,
-
-	IF_RES,
-	ELSE_RES,
-	THEN_RES,
-
-	INPUT_RES,
-	OUTPUT_RES,
-
-	INTEGER_RES,
-	STRING_RES,
-	DECIMAL_RES,
-	BOOLEAN_RES,
-	
-	TRUE_LIT,
-	FALSE_LIT,
-
-	SET_RES,
-	AS_RES,
-
-	STATEMENTS,
-	DECLARATION_STATEMENT,
-	ASSIGN_STATEMENT,
-	INPUT_STATEMENT,
-	OUTPUT_STATEMENT,
-	CONDITIONAL_STATEMENT,
-	ITERATION_STATEMENT,
-	BLANK_STATEMENT,
-	SUB_STATEMENTS,
-	
-	VARIABLES,
-	VAR_TYPE,
-	VARIABLE,
-	VALUES,
-
-	INPUT,
-	OUTPUT,
-
-	INITIAL_COND,
-	MEDIAL_COND,
-	FINAL_COND,
-	PREDICATE_COND,
-
-	ASSIGN_EXPR,
-
-	EXPRESSION,
-	COMPARAND,
-	COMPARISON,
-	TERM,
-	ADD_SUB_OP,
-	FACTOR,
-	MULT_DIV_OP,
-	OPERAND,
-	EXP_OP,
-	NUMBER,
-	BOOLEAN
-	
-	//Insert other nonterminals here
-} Grammar;
-
 typedef struct Position {
 	unsigned int row, column, offset;
 } Position;
 
 typedef struct Token {
 	TokenType type;
-	//int offset;						//0-based offset from file
+	int offset;						//0-based offset from file
 	size_t length;					//string length
-	Position location;
 	struct Token *previous, *next;	//doubly-linked list
+	Position location;
 } Token;
-
-typedef struct ParseNode {
-    Grammar grammar;
-	size_t length;
-	Position location;				//same from the token
-	struct ParseNode *first_child;
-	struct ParseNode *next_sibling;
-} ParseNode;
 
 typedef struct Interpreter {
 	bool debugging;					//debugging file and stderr
@@ -241,6 +125,13 @@ typedef struct Interpreter {
 	FILE *file;						//input file (must be .yass)
 	char *file_name;
 } Interpreter;
+
+typedef struct ParseNode
+{
+    TokenType token;
+	struct ParseNode *first_child;
+	struct ParseNode *sibling;
+} ParseNode;
 
 extern Interpreter *interpreter;
 

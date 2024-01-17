@@ -1,6 +1,8 @@
 #ifndef LEXER_H
 
 #define LEXER_H
+#include <stddef.h>
+#include <stdbool.h>
 #include "global.h"
 #include "trie.h"
 

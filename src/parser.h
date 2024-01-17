@@ -6,6 +6,7 @@
 typedef struct Parser {
 	Token *current;
 	ParseNode *root;
+	FILE *file;		//printing purposes
 } Parser;
 
 ParseNode *parseTokens(Token *token);

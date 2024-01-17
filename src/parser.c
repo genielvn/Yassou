@@ -2,7 +2,7 @@
 
 ParseNode *generateExpression(Parser *parser, bool is_sub_expr);
 ParseNode *generateStatement(Parser *parser);
-void printParseTree(ParseNode *node, size_t level);
+void printParseTree(ParseNode *node);
 
 ParseNode *generateParseNode(Parser *parser, Grammar grammar, bool next) {
 	ParseNode *node = (ParseNode *)calloc(1, sizeof(ParseNode));
@@ -31,7 +31,6 @@ bool isCurrentToken(Parser *parser, TokenType type) {
 		parser->current = next;
 	}
 
-	//DEBUG_MSG("Current token: %s", TokenTypeStr[parser->current->type]);
 	return parser->current->type == type;
 }
 
@@ -82,6 +81,20 @@ ParseNode *generateVarType(Parser *parser) {
 	}
 }
 
+ParseNode *generateString(Parser *parser) {
+	//String syntax is handled in the lexer
+	ParseNode *string_literal = generateParseNode(parser, STRING_WITH_QUOTES, false);
+
+	DEBUG_MSG("Starting string...");
+	
+	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
+	addChild(string_literal, generateParseNode(parser, STRING_LITERAL, true));
+	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
+
+	DEBUG_MSG("Closing string...\n");
+	return string_literal;
+}
+
 ParseNode *generateOperand(Parser *parser) {
 	ParseNode *operand = generateParseNode(parser, OPERAND, false);
 
@@ -105,7 +118,7 @@ ParseNode *generateOperand(Parser *parser) {
 	} else if (isCurrentToken(parser, IDENTIFIER)) {
 		addChild(operand, generateParseNode(parser, IDENTIFIER, true));
 	} else if (isCurrentToken(parser, EXPR_BEGIN)) {
-		addChild(operand, generateExpression(parser, false));
+		addChild(operand, generateExpression(parser, true));
 	} else {
 		DEBUG_MSG("Syntax error: Expects integer, decimal, identifier, or `(`");
 		addChild(operand, generateParseNode(parser, INVALID_SYNTAX, true));
@@ -222,8 +235,14 @@ ParseNode *generateComparison(Parser *parser) {
 ParseNode *generateExpression(Parser *parser, bool is_sub_expr) {
 	ParseNode *expression = generateParseNode(parser, EXPRESSION, false);
 
+	DEBUG_MSG("Starting expression...");
 	if (is_sub_expr) {		//is_sub_expr == always starts with `(`
 		addChild(expression, generateParseNode(parser, EXPR_BEGIN_DEL, true));
+	}
+
+	if (isCurrentToken(parser, STR_DELIMITER)) {
+		addChild(expression, generateString(parser));
+		return expression;	
 	}
 
 	//optional NOT
@@ -266,7 +285,7 @@ ParseNode *generateExpression(Parser *parser, bool is_sub_expr) {
 		addChild(expression, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
 
-	DEBUG_MSG("Closing expression...");
+	DEBUG_MSG("Closing expression...\n");
 	return expression;
 }
 
@@ -278,7 +297,7 @@ ParseNode *generatePredicate(Parser *parser) {
 	addChild(predicate, generateParseNode(parser, IF_RES, true));
 	addChild(predicate, generateExpression(parser, false));
 	
-	DEBUG_MSG("Closing predicate...");
+	DEBUG_MSG("Closing predicate...\n");
 	return predicate;
 }
 
@@ -394,26 +413,14 @@ ParseNode *generateInitialCond(Parser *parser) {
 ParseNode *generateConditionalStatement(Parser *parser) {
 	ParseNode *statement = generateParseNode(parser, CONDITIONAL_STATEMENT, false);
 
+	DEBUG_MSG("Starting conditional statement...");
 	addChild(statement, generateInitialCond(parser));
 
 	while (isCurrentToken(parser, RESERVED_ELSE))
 		addChild(statement, generateMedialOrFinal(parser));
 
+	DEBUG_MSG("Closing conditional statement...\n")
 	return statement;
-}
-
-ParseNode *generateString(ParseNode *parser) {
-	//String syntax is handled in the lexer
-	ParseNode *string_literal = generateParseNode(parser, STRING, false);
-
-	DEBUG_MSG("Starting string...");
-	
-	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
-	addChild(string_literal, generateParseNode(parser, STRING_LITERAL, true));
-	addChild(string_literal, generateParseNode(parser, STR_DEL, true));
-
-	DEBUG_MSG("Closing string...");
-	return string_literal;
 }
 
 ParseNode *generateValue(Parser *parser) {
@@ -431,6 +438,7 @@ ParseNode *generateValue(Parser *parser) {
 ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	ParseNode *statement = generateParseNode(parser, DECLARATION_STATEMENT, false);
 	
+	DEBUG_MSG("Starting declaration statement...")
 	addChild(statement, generateParseNode(parser, SET_RES, true));
 
 	if (isCurrentToken(parser, IDENTIFIER)) {
@@ -443,7 +451,8 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	if (isCurrentToken(parser, RESERVED_AS)) {
 		addChild(statement, generateParseNode(parser, AS_RES, true));
 	} else if (isCurrentToken(parser, ASSIGNMENT)) {
-		addChild(statement, generateParseNode(parser, ASSIGNMENT, true));
+		DEBUG_MSG("Changed into assignment statement.");
+		addChild(statement, generateParseNode(parser, ASSIGNMENT_OP, true));
 		statement->grammar = ASSIGN_STATEMENT;
 	} else {
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
@@ -460,12 +469,44 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	else
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 
+	DEBUG_MSG("Closing statement...\n");
+	return statement;
+}
+
+ParseNode *generateAssignExpr(Parser *parser) {
+	ParseNode *assign_expr = generateParseNode(parser, ASSIGN_EXPR, false);
+	addChild(assign_expr, generateVariable(parser));
+
+	if (isCurrentToken(parser, ASSIGNMENT)) {
+		addChild(assign_expr, generateParseNode(parser, ASSIGNMENT_OP, true));
+	} else {
+		DEBUG_MSG("Syntax error: Expects `=`");
+		addChild(assign_expr, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	addChild(assign_expr, generateExpression(parser, false));
+}
+
+ParseNode *generateInputStatement(Parser *parser) {
+	ParseNode *statement = generateParseNode(parser, INPUT_STATEMENT, false);
+
+	DEBUG_MSG("Starting input statement...");
+	addChild(statement, generateParseNode(parser, INPUT_RES, true));
+	addChild(statement, generateVariableList(parser));
+
+	if (isCurrentToken(parser, SENTENCE_BREAK))
+		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
+	else
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+
+	DEBUG_MSG("Closing input statement...\n");
 	return statement;
 }
 
 ParseNode *generateOutputStatement(Parser *parser) {
 	ParseNode *statement = generateParseNode(parser, OUTPUT_STATEMENT, false);
 
+	DEBUG_MSG("Starting output statement...");
 	addChild(statement, generateParseNode(parser, OUTPUT_RES, true));
 	addChild(statement, generateValue(parser));
 
@@ -474,7 +515,65 @@ ParseNode *generateOutputStatement(Parser *parser) {
 	else
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 
+	DEBUG_MSG("Closing output statement...\n");
+	return statement;
+}
 
+ParseNode *generateIterativeStatement(Parser *parser) {
+	ParseNode *statement = generateParseNode(parser, ITERATION_STATEMENT, false);
+	DEBUG_MSG("Starting iterative statement...");
+
+	addChild(statement, generateParseNode(parser, FOR_RES, true));
+	addChild(statement, generateAssignExpr(parser));
+
+	if (isCurrentToken(parser, RESERVED_TO))
+		addChild(statement, generateParseNode(parser, TO_RES, true));
+	else {
+		DEBUG_MSG("Syntax error: Expects `TO`");
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	addChild(statement, generateValue(parser));
+
+	//Optional iterative step
+	if (isCurrentToken(parser, RESERVED_BY)) {
+		addChild(statement, generateParseNode(parser, BY_RES, true));
+		addChild(statement, generateValue(parser));
+	}
+
+	if (isCurrentToken(parser, RESERVED_DO))
+		addChild(statement, generateParseNode(parser, DO_RES, true));
+	else {
+		DEBUG_MSG("Syntax error: Expects `DO`");
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	if (isCurrentToken(parser, SENTENCE_BREAK)) {
+		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
+	} else {
+		DEBUG_MSG("Syntax error: No SENTENCE_BREAK!");
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	//indent
+	if (isCurrentToken(parser, INDENT)) {
+		addChild(statement, generateParseNode(parser, INDENT_DEL, true));
+	} else {
+		DEBUG_MSG("Syntax error: No INDENT!");
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+	
+	//sub-statements
+	addChild(statement, generateStatement(parser));
+
+	if (isCurrentToken(parser, DEDENT)) {
+		addChild(statement, generateParseNode(parser, DEDENT_DEL, true));
+	} else {
+		DEBUG_MSG("Syntax error: No DEDENT!");
+		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
+
+	DEBUG_MSG("Closing iterative statement...\n");
 	return statement;
 }
 
@@ -486,24 +585,23 @@ ParseNode *generateStatement(Parser *parser) {
 	} else if (isCurrentToken(parser, RESERVED_SET)) {
 		statement = generateDeclarationOrAssignment(parser);
 
-	//} else if (isCurrentToken(parser, RESERVED_INPUT)) {
-		//statement = generateInputStatement(parser);
+	} else if (isCurrentToken(parser, RESERVED_INPUT)) {
+		statement = generateInputStatement(parser);
 	} else if (isCurrentToken(parser, RESERVED_OUTPUT)) {
 		statement = generateOutputStatement(parser);
 	} else if (isCurrentToken(parser, RESERVED_IF)) {
 		statement = generateConditionalStatement(parser);
-	//} else if (isCurrentToken(parser, RESERVED_FOR)) {
-		//statement = generateIterativeStatement(parser);
+	} else if (isCurrentToken(parser, RESERVED_FOR)) {
+		statement = generateIterativeStatement(parser);
 	} else {
-		return NULL;
 		DEBUG_MSG("Syntax Error!");
+		return NULL;
 	}
 
 	return statement;
 }
 
 ParseNode *parseTokens(Token *first) {
-	DEBUG_MSG("PASSED HERE!");
 	Parser parser;
 	parser.current = first;
 	parser.root = generateParseNode(&parser, STATEMENTS, false);
@@ -512,27 +610,41 @@ ParseNode *parseTokens(Token *first) {
 		addChild(parser.root, generateStatement(&parser));
 	}
 
-	printParseTree(parser.root, 0);
+	printParseTree(parser.root);
 	return parser.root;
 }
 
-void printParseTree(ParseNode *node, size_t level) {
-	if (node == NULL || !interpreter->debugging) return;
+void recursivePrint(ParseNode *node, size_t level, FILE *file) {
+	if (node == NULL) return;
 
-	//FILE *debug_file = fopen(".parser_debug.txt", "w+");
-	//DEBUG_FILE_CHECK(debug_file);
-
-	for (size_t i = 0; i < level; ++i)
+	for (size_t i = 0; i < level; ++i) {
+		fprintf(file, "   ");
 		printf("   ");
+	}
 
+	fprintf(file, "%s\n", GrammarStr[node->grammar]);
 	printf("%s\n", GrammarStr[node->grammar]);
+
+	//if (node->grammar == IDENTIFIER || node->grammar == INTEGER ||
+	//	node->grammar == DECIMAL || node->grammar == STRING_LITERAL) {
+	//to print variable
+	//}
+
 	for (ParseNode *current = node->first_child; current != NULL;
 		 current=current->next_sibling) {
-		printParseTree(current, level+1);
+		recursivePrint(current, level+1, file);
 	}
-	
-	if (level != 0) return;
+}
+
+void printParseTree(ParseNode *node) {
+	if (!interpreter->debugging) return;
+
+	FILE *debug_file = fopen(".parser_debug.txt", "w+");
+	DEBUG_FILE_CHECK(debug_file);
+
+	recursivePrint(node, 0, debug_file);
 
 	DEBUG_MSG("See \".parser_debug.txt\" for syntax parse tree.");
-	//fclose(debug_file);
+	fclose(debug_file);
 }
+

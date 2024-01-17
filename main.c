@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 	interpreter->symtable = tokenize(interpreter->file);
 
 	DEBUG_MSG("Parsing...");
-	interpreter->parse_tree = parseTokens(interpreter->symtable); 
+	interpreter->parse_tree = parseTokens(interpreter->symtable);
 	freeInterpreter(interpreter);
 
 	return EXIT_SUCCESS;

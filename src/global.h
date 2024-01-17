@@ -209,7 +209,8 @@ typedef enum Grammar {
 	OPERAND,
 	EXP_OP,
 	NUMBER,
-	BOOLEAN
+	BOOLEAN,
+	STRING_WITH_QUOTES
 	
 	//Insert other nonterminals here
 } Grammar;
@@ -237,7 +238,7 @@ static char GrammarStr[101][30] = {
 	"INPUT", "OUTPUT", "INITIAL_COND", "MEDIAL_COND", "FINAL_COND",
 	"PREDICATE_COND", "ASSIGN_EXPR", "EXPRESSION", "COMPARAND",
 	"COMPARISON", "TERM", "ADD_SUB_OP", "FACTOR", "MULT_DIV_OP",
-	"OPERAND", "EXP_OP", "NUMBER", "BOOLEAN"
+	"OPERAND", "EXP_OP", "NUMBER", "BOOLEAN", "STRING_WITH_QUOTES"
 };
 
 typedef struct Position {

@@ -74,7 +74,7 @@ To run a (.yass) file:
 - [X] Output: text file containing the symbol table
 
 ### Syntactic Analyzer
-- [] Implement Bottom-Up Parsing
+- [ ] Implement Bottom-Up Parsing
 ...
 
 ### Semantic Analyzer

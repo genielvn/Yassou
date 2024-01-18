@@ -1,8 +1,7 @@
 **/__pycache__/
-.lexer_debug.txt
-.parser_debug.txt
 test.yass
 yassou
 yassou.exe
 lexer.c.bak
 .vscode
+*_debug.txt

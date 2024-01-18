@@ -1,25 +1,21 @@
-import os
 import subprocess
-import logging
-import re
 from rich import print as p
-
 
 def testYASSFiles():
     tests = [
                 "conditionals.yass",
                 "identifier.yass",
                 "iterative.yass",
-                "opertators.yass"
+                "operators.yass"
             ]
 
     for file in tests:
+        p(f"\n\n=== Testing {file.encode("utf-8")} ===")
+
         filepath = f"./test/{file}"
         subproc = subprocess.Popen([".//yassou", filepath, "-d"],stdout=subprocess.PIPE)
-        if (subproc.returncode == 0):
-            p(f"[b green]Test successful")
-        else:
-            p(f"[b red]Return code: {subproc.returncode}. Test failed on {file}. Error: {subproc.stderr}.")
-            return;
+
+        for output in subproc.stdout:
+            p(output.decode("utf-8").strip("\n"))
 
 testYASSFiles()

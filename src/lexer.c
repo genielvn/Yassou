@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "../lib/lexer.h"
 
 void moveCursor(Lexer *lexer, bool next_line) {
 	if (feof(lexer->file))
@@ -310,17 +310,6 @@ void indentPush(IndentNode **stack, int indent)
 	*stack = next_node;
 }
 
-void displayStack(IndentNode *stack)
-{
-	IndentNode *node = (IndentNode*)malloc(sizeof(IndentNode));
-	node = stack;
-	while (node != NULL)
-	{
-		DEBUG_MSG("%d", node->data);
-		node = node->next;
-	}
-}
-
 // void initializeIndentStack(IndentNode *stack)
 // {
 // 	stack = (IndentNode*)malloc(sizeof(IndentNode));
@@ -350,6 +339,7 @@ Token *tokenize(FILE *input_file) {
 	
 	printTokens(&lexer);
 	freeAutomata(lexer.trie);
+	DEBUG_MSG("%d", lexer.symtable->type);
 	return lexer.symtable;
 }
 

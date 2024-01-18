@@ -1,5 +1,6 @@
-#include "src/global.h"
-#include "src/lexer.h"
+#include "lib/global.h"
+#include "lib/lexer.h"
+#include "lib/parser.h"
 
 #define EXT ".yass"
 
@@ -17,7 +18,6 @@ void freeInterpreter(Interpreter *interpreter) {
 	DEBUG_MSG("Freeing interpreter memory...");
 	free(interpreter->file_name);
 	fclose(interpreter->file);
-	freeSymTable(interpreter->symtable);
 	free(interpreter);
 }
 
@@ -90,6 +90,9 @@ int main(int argc, char **argv) {
 	parseArguments(interpreter, argc, argv);
 	DEBUG_MSG("Tokenizing...");
 	interpreter->symtable = tokenize(interpreter->file);
+
+	DEBUG_MSG("Parsing...");
+	interpreter->parse_tree = parseTokens(interpreter->symtable);
 	freeInterpreter(interpreter);
 
 	return EXIT_SUCCESS;

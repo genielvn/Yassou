@@ -2,7 +2,7 @@
 #define ERROR_H
 
 #include <errno.h>
-#include "global.h"
+#include "../lib/global.h"
 
 #define INVOKE_ERROR(str, ...) \
 	do { \

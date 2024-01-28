@@ -1,0 +1,2 @@
+SET	X, Y, Z AS INTEGER
+		OUTPUT X, Y, Z

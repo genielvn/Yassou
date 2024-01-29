@@ -1,0 +1,62 @@
+~ Identifiers and Data Types
+
+SET variable1 AS INTEGER
+SET variable2 AS DECIMAL
+SET variable3 AS STRING
+SET variable4 AS BOOLEAN
+
+SET variable1 = 727
+SET variable2 = 7.27
+SET variable3 = "WYSI"
+SET variable4 = TRUE
+
+~ Conditionals
+
+IF variable < 35
+	SET variable = variable + 1
+ELSE
+	SET variable = variable - 1
+
+IF variable == TRUE THEN
+	SET variable = FALSE
+ELSE IF variable == FALSE THEN
+	SET variable = TRUE
+
+~ Iterative
+
+FOR x = 0 TO 10 DO
+    OUTPUT x
+
+FOR y = 0 TO 10 BY 2 DO
+    OUTPUT y
+
+~ Operators
+
+SET nope AS BOOLEAN
+SET nope = FALSE
+
+SET yes AS BOOLEAN
+SET yes = !nope | nope
+
+SET and_true AS BOOLEAN
+SET and_true = nope & yes
+
+SET math AS INTEGER
+SET math = (1 + 2) * (3 ^ 8) - (6 % 8) / (5 // 9)
+
+IF 10 < 20
+    OUTPUT "10 is less than 20"
+ELSE IF 10 > 20
+    OUTPUT "10 is greater than 20"
+ELSE IF 10 == 20    
+    OUTPUT "10 is equal to 20"
+ELSE IF 10 != 20    
+    OUTPUT "10 is equal to 20"
+
+IF 10 <= 20
+    OUTPUT "10 is less than or equal 20"
+ELSE IF 10 >= 20
+    OUTPUT "10 is greater than or equal 20"
+
+SET x = 5
+

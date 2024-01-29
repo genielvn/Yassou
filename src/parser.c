@@ -1,4 +1,5 @@
 #include "../lib/parser.h"
+#include "../lib/debug.h"
 
 ParseNode *generateExpression(Parser *parser, bool is_sub_expr);
 ParseNode *generateStatement(Parser *parser);
@@ -614,37 +615,5 @@ ParseNode *parseTokens(Token *first) {
 	return parser.root;
 }
 
-void recursivePrint(ParseNode *node, size_t level, FILE *file) {
-	if (node == NULL) return;
 
-	for (size_t i = 0; i < level; ++i) {
-		fprintf(file, "   │");
-		printf("   │");
-	}
-
-	fprintf(file, "-%s\n", GrammarStr[node->grammar]);
-	printf("-%s\n", GrammarStr[node->grammar]);
-
-	//if (node->grammar == IDENTIFIER || node->grammar == INTEGER ||
-	//	node->grammar == DECIMAL || node->grammar == STRING_LITERAL) {
-	//to print variable
-	//}
-
-	for (ParseNode *current = node->first_child; current != NULL;
-		 current=current->next_sibling) {
-		recursivePrint(current, level+1, file);
-	}
-}
-
-void printParseTree(ParseNode *node) {
-	if (!interpreter->debugging) return;
-
-	FILE *debug_file = fopen(".parser_debug.txt", "w+");
-	DEBUG_FILE_CHECK(debug_file);
-
-	recursivePrint(node, 0, debug_file);
-
-	DEBUG_MSG("See \".parser_debug.txt\" for syntax parse tree.");
-	fclose(debug_file);
-}
 

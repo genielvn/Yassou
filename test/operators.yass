@@ -17,3 +17,7 @@ ELSE IF 10 > 20
 ELSE IF 10 == 20    
     OUTPUT "10 is equal to 20"
 
+IF 10 <= 20
+    OUTPUT "10 is less than or equal 20"
+ELSE IF 10 >= 20
+    OUTPUT "10 is greater than or equal 20"

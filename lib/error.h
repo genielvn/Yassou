@@ -83,5 +83,20 @@
 	do { \
 		INVOKE_ERROR("Incorrect alignment on indentation. (line %d)", line); \
 	} while (0);
+	
+#define EXPECTED_KEYWORD_ERROR(keyword, line, ch) \
+	do { \
+		INVOKE_ERROR("Expected '%s' in line %d char %d.", keyword, line, ch); \
+	} while (0);
 
+#define EXPECTED_DESCRIPTION_ERROR(description, line, ch) \
+	do { \
+		INVOKE_ERROR("Expected %s in line %d char %d.", description, line, ch); \
+	} while (0);
+
+
+#define EXPECTED_IDENTIFIER_ERROR(line, ch) \
+	do { \
+		INVOKE_ERROR("Expected an identifier in line %d char %d", line, ch); \
+	} while (0);
 #endif

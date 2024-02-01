@@ -65,6 +65,7 @@ ParseNode *generateVariable(Parser *parser) {
 		return generateParseNode(parser, IDENTIFIER_VAR, true);
 	DEBUG_MSG("Syntax error: Not identifier!");
 	return generateParseNode(parser, INVALID_SYNTAX, true);
+	EXPECTED_IDENTIFIER_ERROR(parser->current->location.row, parser->current->location.column);
 }
 
 ParseNode *generateVarType(Parser *parser) {
@@ -78,6 +79,7 @@ ParseNode *generateVarType(Parser *parser) {
 		return generateParseNode(parser, BOOLEAN_RES, true);
 	else {
 		DEBUG_MSG("Syntax error: Not a variable type!");
+		EXPECTED_DESCRIPTION_ERROR("a variable type", parser->current->location.row, parser->current->location.column);
 		return generateParseNode(parser, INVALID_SYNTAX, true);
 	}
 }
@@ -122,6 +124,7 @@ ParseNode *generateOperand(Parser *parser) {
 		addChild(operand, generateExpression(parser, true));
 	} else {
 		DEBUG_MSG("Syntax error: Expects integer, decimal, identifier, or `(`");
+		EXPECTED_DESCRIPTION_ERROR("integer, decimal, identifier, or '('" ,parser->current->location.row, parser->current->location.column)
 		addChild(operand, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
 
@@ -264,7 +267,7 @@ ParseNode *generateExpression(Parser *parser, bool is_sub_expr) {
 		addChild(expression, generateParseNode(parser, EXPR_TERMINATE_DEL, true));
 		return expression;
 	} else {
-		DEBUG_MSG("Syntax Error: No `)`");
+		EXPECTED_KEYWORD_ERROR(")", parser->current->location.row, parser->current->location.column);
 		addChild(expression, generateParseNode(parser, INVALID_SYNTAX, true));
 		return expression;
 	}
@@ -282,7 +285,7 @@ ParseNode *generateExpression(Parser *parser, bool is_sub_expr) {
 	if (is_sub_expr && isCurrentToken(parser, EXPR_TERMINATE)) {
 		addChild(expression, generateParseNode(parser, EXPR_TERMINATE_DEL, true));
 	} else if (is_sub_expr) {
-		DEBUG_MSG("Syntax Error: No `)`");
+		EXPECTED_KEYWORD_ERROR(")", parser->current->location.row, parser->current->location.column);
 		addChild(expression, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
 
@@ -336,6 +339,7 @@ ParseNode *generateMedialOrFinal(Parser *parser) {
 			addChild(cond, generateParseNode(parser, DEDENT_DEL, true));
 		} else {
 			DEBUG_MSG("Syntax error: No DEDENT!");
+			EXPECTED_DESCRIPTION_ERROR("dedention", parser->current->location.row, parser->current->location.column);
 			addChild(cond, generateParseNode(parser, INVALID_SYNTAX, true));
 		}
 
@@ -349,6 +353,7 @@ ParseNode *generateMedialOrFinal(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK)) {
 		addChild(cond, generateParseNode(parser, SENTENCE_END, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No SENTENCE_BREAK!");
 		addChild(cond, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -357,6 +362,8 @@ ParseNode *generateMedialOrFinal(Parser *parser) {
 	if (isCurrentToken(parser, INDENT)) {
 		addChild(cond, generateParseNode(parser, INDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("indention", parser->current->location.row, parser->current->location.column);
+
 		DEBUG_MSG("Syntax error: No INDENT!");
 		addChild(cond, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -367,6 +374,7 @@ ParseNode *generateMedialOrFinal(Parser *parser) {
 	if (isCurrentToken(parser, DEDENT)) {
 		addChild(cond, generateParseNode(parser, DEDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("dedention", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No DEDENT!");
 		addChild(cond, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -386,6 +394,7 @@ ParseNode *generateInitialCond(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK)) {
 		addChild(initial, generateParseNode(parser, SENTENCE_END, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No SENTENCE_BREAK!");
 		addChild(initial, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -394,6 +403,7 @@ ParseNode *generateInitialCond(Parser *parser) {
 	if (isCurrentToken(parser, INDENT)) {
 		addChild(initial, generateParseNode(parser, INDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("indention", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No INDENT!");
 		addChild(initial, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -404,6 +414,7 @@ ParseNode *generateInitialCond(Parser *parser) {
 	if (isCurrentToken(parser, DEDENT)) {
 		addChild(initial, generateParseNode(parser, DEDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("dedention", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No DEDENT!");
 		addChild(initial, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -432,8 +443,11 @@ ParseNode *generateValue(Parser *parser) {
 			 isCurrentToken(parser, NOT) || isCurrentToken(parser, EXPR_BEGIN))
 		return generateExpression(parser, false);
 	else
+	{
+		EXPECTED_DESCRIPTION_ERROR("value", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: Expects a value...");
 		return generateParseNode(parser, INVALID_SYNTAX, true);
+	}
 }
 
 ParseNode *generateDeclarationOrAssignment(Parser *parser) {
@@ -445,8 +459,7 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	if (isCurrentToken(parser, IDENTIFIER)) {
 		addChild(statement, generateVariableList(parser));
 	} else {
-		DEBUG_MSG("Syntax error!");
-		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+		EXPECTED_IDENTIFIER_ERROR(parser->current->location.row, parser->current->location.column);
 	}
 
 	if (isCurrentToken(parser, RESERVED_AS)) {
@@ -457,6 +470,7 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 		statement->grammar = ASSIGN_STATEMENT;
 	} else {
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+		EXPECTED_KEYWORD_ERROR("AS", parser->current->location.row, parser->current->location.column);
 	}
 
 	if (statement->grammar == DECLARATION_STATEMENT) {
@@ -468,7 +482,10 @@ ParseNode *generateDeclarationOrAssignment(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK))
 		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
 	else
-		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	{
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
+		// addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
 
 	DEBUG_MSG("Closing statement...\n");
 	return statement;
@@ -481,6 +498,7 @@ ParseNode *generateAssignExpr(Parser *parser) {
 	if (isCurrentToken(parser, ASSIGNMENT)) {
 		addChild(assign_expr, generateParseNode(parser, ASSIGNMENT_OP, true));
 	} else {
+		EXPECTED_KEYWORD_ERROR("=", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: Expects `=`");
 		addChild(assign_expr, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -498,7 +516,10 @@ ParseNode *generateInputStatement(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK))
 		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
 	else
+	{
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	}
 
 	DEBUG_MSG("Closing input statement...\n");
 	return statement;
@@ -507,6 +528,8 @@ ParseNode *generateInputStatement(Parser *parser) {
 ParseNode *generateOutputStatement(Parser *parser) {
 	ParseNode *statement = generateParseNode(parser, OUTPUT_STATEMENT, false);
 
+	// TODO: Identifier List Not Working
+
 	DEBUG_MSG("Starting output statement...");
 	addChild(statement, generateParseNode(parser, OUTPUT_RES, true));
 	addChild(statement, generateValue(parser));
@@ -514,7 +537,9 @@ ParseNode *generateOutputStatement(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK))
 		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
 	else
-		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
+	{
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
+	}
 
 	DEBUG_MSG("Closing output statement...\n");
 	return statement;
@@ -530,6 +555,7 @@ ParseNode *generateIterativeStatement(Parser *parser) {
 	if (isCurrentToken(parser, RESERVED_TO))
 		addChild(statement, generateParseNode(parser, TO_RES, true));
 	else {
+		EXPECTED_KEYWORD_ERROR("TO", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: Expects `TO`");
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -552,6 +578,7 @@ ParseNode *generateIterativeStatement(Parser *parser) {
 	if (isCurrentToken(parser, SENTENCE_BREAK)) {
 		addChild(statement, generateParseNode(parser, SENTENCE_END, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("a line break", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No SENTENCE_BREAK!");
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -560,6 +587,7 @@ ParseNode *generateIterativeStatement(Parser *parser) {
 	if (isCurrentToken(parser, INDENT)) {
 		addChild(statement, generateParseNode(parser, INDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("indention", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No INDENT!");
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -570,6 +598,7 @@ ParseNode *generateIterativeStatement(Parser *parser) {
 	if (isCurrentToken(parser, DEDENT)) {
 		addChild(statement, generateParseNode(parser, DEDENT_DEL, true));
 	} else {
+		EXPECTED_DESCRIPTION_ERROR("dedention", parser->current->location.row, parser->current->location.column);
 		DEBUG_MSG("Syntax error: No DEDENT!");
 		addChild(statement, generateParseNode(parser, INVALID_SYNTAX, true));
 	}
@@ -580,6 +609,8 @@ ParseNode *generateIterativeStatement(Parser *parser) {
 
 ParseNode *generateStatement(Parser *parser) {
 	ParseNode *statement;
+
+	DEBUG_MSG("Line %d", parser->current->location.row);
 
 	if (isCurrentToken(parser, SENTENCE_BREAK)) {
 		statement = generateParseNode(parser, BLANK_STATEMENT, true);
@@ -595,7 +626,8 @@ ParseNode *generateStatement(Parser *parser) {
 	} else if (isCurrentToken(parser, RESERVED_FOR)) {
 		statement = generateIterativeStatement(parser);
 	} else {
-		DEBUG_MSG("Syntax Error!");
+		DEBUG_MSG("No Opening Grammar!");
+		EXPECTED_DESCRIPTION_ERROR("opening statement", parser->current->location.row, parser->current->location.column);
 		return NULL;
 	}
 

@@ -1,4 +1,5 @@
 #include "../lib/lexer.h"
+#include "../lib/debug.h"
 
 void moveCursor(Lexer *lexer, bool next_line) {
 	if (feof(lexer->file))
@@ -173,14 +174,7 @@ void handleIndention(Lexer *lexer) {
 		moveCursor(lexer, false);
 	}
 
-	if (lexer->indent_stack == NULL)
-	{
-		DEBUG_MSG("Indent Stack is NULL");
-	}
-
-
 	int last_indent = indentPeek(&lexer->indent_stack);
-	DEBUG_MSG("%d < %d?", last_indent, indents);
 	if (last_indent < indents)
 	{
 		indentPush(&lexer->indent_stack, indents);
@@ -234,47 +228,10 @@ void handleCharacter(Lexer *lexer) {
 		handleSymbol(lexer);	// Symbols and other delimiters
 }
 
-void printTokens(Lexer *lexer) {
-	if (!interpreter->debugging) return;
-	
-	FILE *debug_file = fopen(".lexer_debug.txt", "w+");
-	DEBUG_FILE_CHECK(debug_file);
-
-	printf("ROW\tCOL\tLEN\t%-16s VALUE\n", "TYPE");
-	fprintf(debug_file, "ROW\tCOL\tLEN\t%-16s VALUE\n", "TYPE");
-	for (Token *current = lexer->symtable; current != NULL; current = current->next) {
-		fseek(lexer->file, current->location.offset, SEEK_SET);
-		
-		char value[current->length+1];
-		fread(value, current->length, 1, lexer->file);
-		value[current->length] = '\0';
-
-		Position location = current->location;
-		char *token_type = TokenTypeStr[current->type];
-		size_t length = current->length;
-
-		if (*value == '\n' || current->next == NULL) {
-			printf("%d\t%d\t%ld\t%-16s %s\n",
-					location.row, location.column, length, token_type, "\\n");
-			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n",
-					location.row, location.column, length, token_type, "\\n");
-		} else {
-			printf("%d\t%d\t%ld\t%-16s %s\n",
-					location.row, location.column, length, token_type, value);
-			fprintf(debug_file, "%d\t%d\t%ld\t%-16s %s\n",
-					location.row, location.column, length, token_type, value);
-		}
-	}
-
-	DEBUG_MSG("See \".lexer_debug.txt\" for token symbol table.");
-	fclose(debug_file);
-}
-
 int indentPeek(IndentNode **stack)
 {
 	if (*stack == NULL) 
 	{	
-		DEBUG_MSG("Empty Stack.");
 		return 0;
 	}
 	// DEBUG_MSG("IndentStack has peeked: %d", stack->data);
@@ -286,7 +243,6 @@ int indentPop(IndentNode **stack)
 	IndentNode *temp = *stack;
 	if ((*stack) == NULL)
 	{
-		DEBUG_MSG("STACK UNDERFLOW!");
 		return 0;
 	}
 	else
@@ -294,7 +250,6 @@ int indentPop(IndentNode **stack)
 		*stack = (*stack)->next;
 	}
 	int num = temp->data;
-	DEBUG_MSG("IndentStack has popped: %d", num);
 
 	free(temp);
 	return num;
@@ -302,18 +257,12 @@ int indentPop(IndentNode **stack)
 
 void indentPush(IndentNode **stack, int indent)
 {
-	DEBUG_MSG("IndentStack has pushed: %d", indent);
 	IndentNode *next_node = (IndentNode*)malloc(sizeof(IndentNode));
 	MEMCHECK;
 	next_node->data = indent;
 	next_node->next = *stack;	
 	*stack = next_node;
 }
-
-// void initializeIndentStack(IndentNode *stack)
-// {
-// 	stack = (IndentNode*)malloc(sizeof(IndentNode));
-// }
 
 Token *tokenize(FILE *input_file) {
 	Lexer lexer;
@@ -323,10 +272,6 @@ Token *tokenize(FILE *input_file) {
 	lexer.cursor = (Position){1, 1, 0}; // row & col: 1-based; offset: 0-based
 	lexer.trie = generateAutomata();
 	lexer.indent_stack = NULL;
-	if (lexer.indent_stack == NULL)
-	{
-		DEBUG_MSG("Initialized Stack as NULL");
-	}
 	// initializeIndentStack(&lexer.indent_stack);
 
 	while (!feof(lexer.file)) {

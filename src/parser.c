@@ -338,8 +338,8 @@ ParseNode *generateMedialOrFinal(Parser *parser) {
 		if (isCurrentToken(parser, DEDENT)) {
 			addChild(cond, generateParseNode(parser, DEDENT_DEL, true));
 		} else {
-			DEBUG_MSG("Syntax error: No DEDENT!");
 			EXPECTED_DESCRIPTION_ERROR("dedention", parser->current->location.row, parser->current->location.column);
+			DEBUG_MSG("Syntax error: No DEDENT!");
 			addChild(cond, generateParseNode(parser, INVALID_SYNTAX, true));
 		}
 
